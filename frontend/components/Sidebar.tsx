@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Mail, Users, Settings, Sparkles, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, Mail, Users, Settings } from 'lucide-react';
 
 interface SidebarProps {
   currentTab: string;
@@ -16,16 +16,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
 
   return (
     <aside className="sidebar">
-      <div style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div 
-          className="gradient-bg" 
-          style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Sparkles size={20} color="#fff" />
-        </div>
-        <h2 style={{ fontSize: '1.25rem' }}>
-          bio<span style={{ color: 'var(--color-secondary)', fontWeight: 800 }}>cryst</span>
-        </h2>
+      <div style={{ marginBottom: '40px', display: 'flex', alignItems: 'center' }}>
+        <img
+          src="/logo.png"
+          alt="BioCryst Logo"
+          style={{ height: '44px', objectFit: 'contain', maxWidth: '180px' }}
+        />
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
