@@ -40,7 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ title }) => {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: 'var(--text-primary)',
               outline: 'none',
               width: '100%',
               fontSize: '0.85rem'

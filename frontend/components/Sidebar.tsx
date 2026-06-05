@@ -24,7 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
           <Sparkles size={20} color="#fff" />
         </div>
         <h2 style={{ fontSize: '1.25rem' }}>
-          Portal<span className="gradient-text">AI</span>
+          bio<span style={{ color: 'var(--color-secondary)', fontWeight: 800 }}>cryst</span>
         </h2>
       </div>
 
@@ -44,8 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
                 padding: '12px 16px',
                 borderRadius: '8px',
                 border: 'none',
-                background: isActive ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                color: isActive ? '#a5b4fc' : '#9ca3af',
+                background: isActive ? 'rgba(94, 187, 148, 0.12)' : 'transparent',
+                color: isActive ? 'var(--color-secondary)' : 'var(--text-secondary)',
                 fontFamily: 'inherit',
                 fontSize: '0.95rem',
                 fontWeight: isActive ? 600 : 500,

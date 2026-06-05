@@ -76,7 +76,7 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
               borderRadius: '8px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-glass)',
-              color: '#fff',
+              color: 'var(--text-primary)',
               outline: 'none',
               fontFamily: 'inherit',
               fontSize: '1rem'
@@ -99,7 +99,7 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
               borderRadius: '8px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-glass)',
-              color: '#fff',
+              color: 'var(--text-primary)',
               outline: 'none',
               fontFamily: 'monospace',
               fontSize: '0.9rem',
@@ -121,7 +121,7 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
           </button>
 
           {statusMessage && (
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-secondary)', marginLeft: '8px' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-primary)', marginLeft: '8px' }}>
               {statusMessage}
             </span>
           )}
@@ -136,9 +136,9 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
             <button
               onClick={() => setPreviewMode('desktop')}
               style={{
-                background: previewMode === 'desktop' ? 'rgba(255,255,255,0.08)' : 'transparent',
+                background: previewMode === 'desktop' ? 'rgba(0,0,0,0.05)' : 'transparent',
                 border: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 fontSize: '0.75rem',
@@ -150,9 +150,9 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
             <button
               onClick={() => setPreviewMode('mobile')}
               style={{
-                background: previewMode === 'mobile' ? 'rgba(255,255,255,0.08)' : 'transparent',
+                background: previewMode === 'mobile' ? 'rgba(0,0,0,0.05)' : 'transparent',
                 border: 'none',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 padding: '4px 8px',
                 borderRadius: '4px',
                 fontSize: '0.75rem',

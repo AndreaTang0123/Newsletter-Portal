@@ -34,7 +34,7 @@ export default function DashboardHome() {
             {/* Quick Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
               <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--color-primary)' }}>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(94, 187, 148, 0.15)', color: 'var(--color-primary)' }}>
                   <Mail size={24} />
                 </div>
                 <div>
@@ -44,7 +44,7 @@ export default function DashboardHome() {
               </div>
 
               <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--color-secondary)' }}>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(0, 40, 69, 0.1)', color: 'var(--color-secondary)' }}>
                   <CheckCircle size={24} />
                 </div>
                 <div>
@@ -54,7 +54,7 @@ export default function DashboardHome() {
               </div>
 
               <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(217, 70, 239, 0.15)', color: 'var(--color-accent)' }}>
+                <div style={{ padding: '12px', borderRadius: '8px', background: 'rgba(94, 187, 148, 0.15)', color: 'var(--color-accent)' }}>
                   <BarChart3 size={24} />
                 </div>
                 <div>
@@ -82,14 +82,14 @@ export default function DashboardHome() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
                       <td style={{ padding: '16px', fontWeight: 500 }}>Q1 engineering roadmap review</td>
                       <td style={{ padding: '16px' }}>Engineering Updates</td>
                       <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>2026-06-01 10:00 AM</td>
                       <td style={{ padding: '16px' }}>24 Recipients</td>
                       <td style={{ padding: '16px' }}><span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Delivered</span></td>
                     </tr>
-                    <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
                       <td style={{ padding: '16px', fontWeight: 500 }}>Health insurance updates & enrollment details</td>
                       <td style={{ padding: '16px' }}>HR Announcements</td>
                       <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>2026-05-18 09:30 AM</td>
@@ -137,21 +137,21 @@ export default function DashboardHome() {
                     <h5 style={{ fontSize: '0.95rem' }}>Administrators</h5>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Full editing privileges, category creation, database uploads.</p>
                   </div>
-                  <span style={{ fontSize: '0.8rem', background: 'rgba(99, 102, 241, 0.2)', border: '1px solid var(--color-primary)', color: '#fff', padding: '2px 8px', borderRadius: '4px' }}>Admin</span>
+                  <span style={{ fontSize: '0.8rem', background: 'rgba(94, 187, 148, 0.12)', border: '1px solid var(--color-primary)', color: 'var(--color-primary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>Admin</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                   <div>
                     <h5 style={{ fontSize: '0.95rem' }}>Curators</h5>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Draft creation, AI content generation tools. Restrictions on sending directly.</p>
                   </div>
-                  <span style={{ fontSize: '0.8rem', background: 'rgba(6, 182, 212, 0.2)', border: '1px solid var(--color-secondary)', color: '#fff', padding: '2px 8px', borderRadius: '4px' }}>Curator</span>
+                  <span style={{ fontSize: '0.8rem', background: 'rgba(0, 40, 69, 0.08)', border: '1px solid var(--color-secondary)', color: 'var(--color-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>Curator</span>
                 </div>
               </div>
             </div>
 
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <Cpu size={20} color="var(--color-secondary)" />
+                <Cpu size={20} color="var(--color-primary)" />
                 <h3 style={{ fontSize: '1.25rem' }}>Gemini AI Credentials</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px' }}>
@@ -160,14 +160,14 @@ export default function DashboardHome() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.9rem' }}>AI Model Engine</span>
-                  <select style={{ padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: '#fff', borderRadius: '6px' }}>
+                  <select style={{ padding: '6px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', color: 'var(--text-primary)', borderRadius: '6px' }}>
                     <option>Gemini 1.5 Pro</option>
                     <option>Gemini 1.5 Flash</option>
                   </select>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.9rem' }}>Generation Temperature (Creativity)</span>
-                  <input type="range" min="0" max="1" step="0.1" defaultValue="0.7" style={{ accentColor: 'var(--color-secondary)' }} />
+                  <input type="range" min="0" max="1" step="0.1" defaultValue="0.7" style={{ accentColor: 'var(--color-primary)' }} />
                 </div>
               </div>
             </div>

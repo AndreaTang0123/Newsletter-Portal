@@ -33,7 +33,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
         title: `AI Draft: ${prompt.slice(0, 30)}${prompt.length > 30 ? '...' : ''}`,
         content_html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: #6366f1;">Welcome to our Latest Update!</h2>
+            <h2 style="color: var(--color-primary);">Welcome to our Latest Update!</h2>
             <p>Following your prompt about <strong>"${prompt}"</strong>, we put together this newsletter draft with a <strong>${tone}</strong> tone.</p>
             <p>Key highlights this week:</p>
             <ul>
@@ -45,7 +45,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
             <p style="font-size: 11px; color: #999;">
               You are receiving this because you subscribed to category updates. 
-              <a href="/public/unsubscribe" style="color: #6366f1;">Unsubscribe</a>
+              <a href="/unsubscribe" style="color: var(--color-primary);">Unsubscribe</a>
             </p>
           </div>
         `
@@ -58,7 +58,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
   return (
     <div className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <Sparkles size={20} color="var(--color-secondary)" />
+        <Sparkles size={20} color="var(--color-primary)" />
         <h3 style={{ fontSize: '1.2rem' }}>AI Draft Assistant</h3>
       </div>
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
@@ -81,7 +81,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
               borderRadius: '8px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-glass)',
-              color: '#fff',
+              color: 'var(--text-primary)',
               outline: 'none',
               fontFamily: 'inherit',
               fontSize: '0.9rem',
@@ -105,7 +105,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
                 borderRadius: '8px',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-glass)',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 outline: 'none'
               }}
             >
@@ -128,7 +128,7 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
                 borderRadius: '8px',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-glass)',
-                color: '#fff',
+                color: 'var(--text-primary)',
                 outline: 'none'
               }}
             >

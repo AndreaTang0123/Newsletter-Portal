@@ -83,7 +83,7 @@ export const SubscribersList: React.FC = () => {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: 'var(--text-primary)',
               outline: 'none',
               width: '100%',
               fontSize: '0.85rem'
@@ -104,19 +104,19 @@ export const SubscribersList: React.FC = () => {
           </thead>
           <tbody>
             {filtered.map((s) => (
-              <tr key={s.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)', transition: 'background 0.2s' }}>
+              <tr key={s.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
                 <td style={{ padding: '16px', fontWeight: 500 }}>{s.full_name}</td>
                 <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{s.email}</td>
                 <td style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {s.categories.map((cat, i) => (
                       <span key={i} style={{
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        background: 'rgba(94, 187, 148, 0.12)',
+                        border: '1px solid rgba(94, 187, 148, 0.3)',
                         borderRadius: '12px',
                         padding: '2px 8px',
                         fontSize: '0.75rem',
-                        color: '#a5b4fc',
+                        color: 'var(--color-secondary)',
                         fontWeight: 500
                       }}>
                         {cat}

@@ -50,26 +50,25 @@ export default function UnsubscribePage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0b0f19',
+      backgroundColor: '#f8fafc',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: 'Inter, sans-serif',
-      color: '#f3f4f6',
+      color: '#0f172a',
       padding: '20px'
     }}>
       <Head>
-        <title>Manage Subscription - PortalAI</title>
+        <title>Manage Subscription - BioCryst</title>
         <style>{`
           .card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 16px;
             padding: 40px;
             width: 100%;
             max-width: 480px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
           }
           .title {
             font-family: Outfit, sans-serif;
@@ -79,7 +78,7 @@ export default function UnsubscribePage() {
           }
           .subtitle {
             font-size: 0.85rem;
-            color: #9ca3af;
+            color: #475569;
             margin-bottom: 24px;
             text-align: center;
             line-height: 1.4;
@@ -88,9 +87,9 @@ export default function UnsubscribePage() {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
-            background: #111827;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #fff;
+            background: #f1f5f9;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #0f172a;
             margin-bottom: 20px;
             outline: none;
             font-size: 0.95rem;
@@ -99,8 +98,8 @@ export default function UnsubscribePage() {
             display: flex;
             align-items: center;
             gap: 12px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(0, 0, 0, 0.01);
+            border: 1px solid rgba(0, 0, 0, 0.04);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 8px;
@@ -108,10 +107,10 @@ export default function UnsubscribePage() {
             transition: all 0.2s;
           }
           .checkbox-item:hover {
-            background: rgba(255,255,255,0.06);
+            background: rgba(0, 0, 0, 0.03);
           }
           .btn-submit {
-            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            background: linear-gradient(135deg, #5ebb94, #002845);
             color: #fff;
             border: none;
             width: 100%;
@@ -120,12 +119,12 @@ export default function UnsubscribePage() {
             font-weight: 600;
             cursor: pointer;
             margin-top: 16px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(94, 187, 148, 0.2);
             transition: all 0.2s;
           }
           .btn-submit:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+            box-shadow: 0 6px 16px rgba(94, 187, 148, 0.35);
           }
         `}</style>
       </Head>
@@ -133,7 +132,7 @@ export default function UnsubscribePage() {
       <div className="card">
         {!success ? (
           <form onSubmit={handleUpdate}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#6366f1' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px', color: '#5ebb94' }}>
               <MailCheck size={40} />
             </div>
             <h1 className="title">Manage Subscription</h1>
@@ -141,7 +140,7 @@ export default function UnsubscribePage() {
               Modify your categories of newsletter subscriptions below. Deselect to unsubscribe.
             </p>
 
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#9ca3af', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
               EMAIL ADDRESS
             </label>
             <input
@@ -153,7 +152,7 @@ export default function UnsubscribePage() {
               className="input-field"
             />
 
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#9ca3af', marginBottom: '12px' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>
               SELECT TOPICS TO RECEIVE
             </label>
             <div>
@@ -163,7 +162,7 @@ export default function UnsubscribePage() {
                     type="checkbox"
                     checked={cat.checked}
                     onChange={() => {}} // Controlled in parent div onClick
-                    style={{ accentColor: '#6366f1', width: '16px', height: '16px', cursor: 'pointer' }}
+                    style={{ accentColor: '#5ebb94', width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                   <span style={{ fontSize: '0.9rem', userSelect: 'none' }}>{cat.name}</span>
                 </div>
