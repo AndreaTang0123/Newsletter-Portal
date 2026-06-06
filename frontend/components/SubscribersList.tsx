@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { UserPlus, Upload, Search, MailCheck, Filter } from 'lucide-react';
+import { UserPlus, Upload, Search, Filter } from 'lucide-react';
 import { subscriberApi } from '../lib/api';
+
+const AVAILABLE_CATEGORIES = ['HAE', 'NS', 'CMD'];
 
 export const SubscribersList: React.FC = () => {
   const [subscribers, setSubscribers] = useState([
-    { id: 1, email: 'alice.johnson@company.com', full_name: 'Alice Johnson', categories: ['Engineering Updates', 'HR Announcements'], status: 'Active' },
-    { id: 2, email: 'bob.smith@company.com', full_name: 'Bob Smith', categories: ['Marketing & Events'], status: 'Active' },
-    { id: 3, email: 'charlie.brown@company.com', full_name: 'Charlie Brown', categories: ['Engineering Updates'], status: 'Unsubscribed' },
+    { id: 1, email: 'alice.johnson@company.com', full_name: 'Alice Johnson', categories: ['HAE', 'NS'], status: 'Active' },
+    { id: 2, email: 'bob.smith@company.com', full_name: 'Bob Smith', categories: ['CMD'], status: 'Active' },
+    { id: 3, email: 'charlie.brown@company.com', full_name: 'Charlie Brown', categories: ['HAE'], status: 'Unsubscribed' },
   ]);
 
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
   const [importing, setImporting] = useState(false);
 
   const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,18 +30,20 @@ export const SubscribersList: React.FC = () => {
       // Simulate adding new mock users
       setSubscribers((prev) => [
         ...prev,
-        { id: prev.length + 1, email: 'john.doe@company.com', full_name: 'John Doe', categories: ['Engineering Updates'], status: 'Active' },
-        { id: prev.length + 2, email: 'jane.doe@company.com', full_name: 'Jane Doe', categories: ['HR Announcements'], status: 'Active' },
+        { id: prev.length + 1, email: 'john.doe@company.com', full_name: 'John Doe', categories: ['HAE'], status: 'Active' },
+        { id: prev.length + 2, email: 'jane.doe@company.com', full_name: 'Jane Doe', categories: ['NS'], status: 'Active' },
       ]);
     } finally {
       setImporting(false);
     }
   };
 
-  const filtered = subscribers.filter(s => 
-    s.email.toLowerCase().includes(search.toLowerCase()) || 
-    s.full_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = subscribers
+    .filter(s => 
+      s.email.toLowerCase().includes(search.toLowerCase()) || 
+      s.full_name.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter(s => categoryFilter === 'All' || s.categories.includes(categoryFilter));
 
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>
@@ -46,7 +51,7 @@ export const SubscribersList: React.FC = () => {
         <div>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>Audience Database</h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            Browse and segment employees subscribed to email categories.
+            Browse and segment subscribers in the three main channels: HAE, NS, CMD.
           </p>
         </div>
 
@@ -63,7 +68,7 @@ export const SubscribersList: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -72,7 +77,8 @@ export const SubscribersList: React.FC = () => {
           border: '1px solid var(--border-glass)',
           borderRadius: '8px',
           padding: '8px 12px',
-          flex: 1
+          flex: 1,
+          minWidth: '220px'
         }}>
           <Search size={16} color="var(--text-secondary)" />
           <input 
@@ -89,6 +95,27 @@ export const SubscribersList: React.FC = () => {
               fontSize: '0.85rem'
             }} 
           />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Filter size={16} color="var(--text-secondary)" />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid var(--border-glass)',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              minWidth: '160px'
+            }}
+          >
+            <option value="All">All Categories</option>
+            {AVAILABLE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
       </div>
 
