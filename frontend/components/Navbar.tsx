@@ -1,11 +1,12 @@
 import React from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Settings, Search } from 'lucide-react';
 
 interface NavbarProps {
   title: string;
+  onSettingsClick: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ title }) => {
+export const Navbar: React.FC<NavbarProps> = ({ title, onSettingsClick }) => {
   return (
     <header style={{
       display: 'flex',
@@ -48,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({ title }) => {
           />
         </div>
 
-        <button style={{
+        <button onClick={onSettingsClick} style={{
           background: 'transparent',
           border: '1px solid var(--border-glass)',
           borderRadius: '50%',
@@ -60,8 +61,8 @@ export const Navbar: React.FC<NavbarProps> = ({ title }) => {
           cursor: 'pointer',
           color: 'var(--text-primary)',
           transition: 'all 0.2s'
-        }}>
-          <Bell size={18} />
+        }} aria-label="Open settings">
+          <Settings size={18} />
         </button>
       </div>
     </header>

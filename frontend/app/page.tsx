@@ -27,7 +27,7 @@ export default function DashboardHome() {
 
       {/* Main Admin View Workspace */}
       <main className="content-area">
-        <Navbar title={currentTab} />
+        <Navbar title={currentTab} onSettingsClick={() => setCurrentTab('settings')} />
 
         {currentTab === 'dashboard' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
