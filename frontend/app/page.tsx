@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar';
 import { AIDraftWizard } from '../components/AIDraftWizard';
 import { NewsletterEditor } from '../components/NewsletterEditor';
 import { SubscribersList } from '../components/SubscribersList';
+import { NewsletterHistory } from '../components/NewsletterHistory';
 import { Mail, ShieldCheck, Cpu, Send, CheckCircle, BarChart3 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -118,6 +119,10 @@ export default function DashboardHome() {
 
         {currentTab === 'subscribers' && (
           <SubscribersList />
+        )}
+
+        {currentTab === 'send-history' && (
+          <NewsletterHistory />
         )}
 
         {currentTab === 'settings' && (
