@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base, SessionLocal
-from .routers import newsletters, subscribers, categories, ai, email
+from .routers import newsletters, subscribers, categories, ai, email, auth
 from . import models, crud, schemas
 
 # Initialize database schemas
@@ -28,6 +28,7 @@ app.include_router(subscribers.router, prefix="/api/v1")
 app.include_router(categories.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(email.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

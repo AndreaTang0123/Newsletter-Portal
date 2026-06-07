@@ -1,18 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
 import { AIDraftWizard } from '../components/AIDraftWizard';
 import { NewsletterEditor } from '../components/NewsletterEditor';
 import { SubscribersList } from '../components/SubscribersList';
 import { NewsletterHistory } from '../components/NewsletterHistory';
+import { authApi } from '../lib/api';
 import { Mail, ShieldCheck, Cpu, Send, CheckCircle, BarChart3 } from 'lucide-react';
 
 export default function DashboardHome() {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loadingLogin, setLoadingLogin] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setLoggedIn(true);
+      }
+    }
+  }, []);
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoginError('');
+    setLoadingLogin(true);
+
+    try {
+      const response = await authApi.login({ email, password });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.data.access_token);
+      }
+      setLoggedIn(true);
+    } catch (error) {
+      setLoginError('Login failed. Please check your email and password.');
+    } finally {
+      setLoadingLogin(false);
+    }
+  };
 
   const handleDraftGenerated = (draft: { title: string; content_html: string }) => {
     setDraftTitle(draft.title);
@@ -20,6 +53,88 @@ export default function DashboardHome() {
     // Switch to newsletter tab to edit the newly created draft
     setCurrentTab('newsletters');
   };
+
+  if (!loggedIn) {
+    return (
+      <main style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px', padding: '48px' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px', maxWidth: '560px' }}>
+          <div>
+            <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>PortalAI</p>
+            <h1 style={{ fontSize: '3rem', lineHeight: 1.05, maxWidth: '540px' }}>Smart newsletter portal — sign in securely and manage your send history.</h1>
+          </div>
+
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '520px', lineHeight: 1.8 }}>
+            Manage subscribers, AI-generated content, and send history in one place. Microsoft Entra ID login will be supported in the future; currently using mock login for quick validation.
+          </p>
+
+          <div style={{ display: 'grid', gap: '14px' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
+              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>AI-powered newsletter draft creation</p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
+              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Audience segmentation and send history overview</p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
+              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Microsoft Entra ID SSO support coming soon</p>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ alignSelf: 'center' }}>
+          <div className="glass-panel" style={{ padding: '32px', maxWidth: '420px', width: '100%' }}>
+            <div style={{ marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Sign in to your account</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Use mock backend login to validate portal functionality in the current environment.</p>
+            </div>
+
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="curator@company.com"
+                  required
+                  style={{ padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                />
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                Password
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="securepassword123"
+                  required
+                  style={{ padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                />
+              </label>
+
+              {loginError && <p style={{ color: 'var(--color-error)', fontSize: '0.9rem' }}>{loginError}</p>}
+
+              <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loadingLogin}>
+                {loadingLogin ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }} disabled>
+                Sign in with Microsoft Entra ID (coming soon)
+              </button>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+                This is currently a mock login. Use default credentials: <strong>curator@company.com</strong> / <strong>securepassword123</strong>
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <div className="app-container">
