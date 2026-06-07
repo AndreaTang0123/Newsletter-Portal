@@ -242,6 +242,7 @@ export default function DashboardHome() {
 
         {currentTab === 'settings' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
             <div className="glass-panel" style={{ padding: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <ShieldCheck size={20} color="var(--color-primary)" />
@@ -290,6 +291,20 @@ export default function DashboardHome() {
                   <input type="range" min="0" max="1" step="0.1" defaultValue="0.7" style={{ accentColor: 'var(--color-primary)' }} />
                 </div>
               </div>
+            </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('token');
+                  }
+                  setLoggedIn(false);
+                }}
+                style={{ padding: '8px 14px' }}
+              >
+                Sign out
+              </button>
             </div>
           </div>
         )}
