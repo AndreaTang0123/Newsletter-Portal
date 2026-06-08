@@ -60,7 +60,7 @@ export default function DashboardHome() {
         <section style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px', maxWidth: '560px' }}>
           <div>
             <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>PortalAI</p>
-            <h1 style={{ fontSize: '3rem', lineHeight: 1.05, maxWidth: '540px' }}>Smart newsletter portal — sign in securely and manage your send history.</h1>
+            <h1 style={{ fontSize: '3rem', lineHeight: 1.05, maxWidth: '540px' }}>SDIO Newsletter Portal — sign in securely and manage your send history.</h1>
           </div>
 
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '520px', lineHeight: 1.8 }}>
