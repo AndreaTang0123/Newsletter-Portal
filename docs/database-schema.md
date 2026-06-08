@@ -8,6 +8,7 @@ erDiagram
     NEWSLETTER ||--o{ CAMPAIGN_HISTORY : logs
     NEWSLETTER }o--o{ CATEGORY : targets
     SUBSCRIBER }o--o{ CATEGORY : subscribes_to
+    NEWSLETTER }o--o{ CATEGORY : targets
     SUBSCRIBER ||--o{ CAMPAIGN_HISTORY : receives
 
     USER {
@@ -61,7 +62,7 @@ Represents curators and administrators managing the system.
 
 ### 2. Subscriber
 Employees or contacts who receive updates.
-- Many-to-many relationship with `Category` via a join table `subscriber_category_association`.
+- Many-to-many relationship with `Category` via a join table `subscriber_category`.
 
 ### 3. Category
 Different topics of newsletters (e.g., *Product Updates*, *HR Announcements*).

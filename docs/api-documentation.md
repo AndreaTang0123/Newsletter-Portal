@@ -4,7 +4,21 @@ The backend exposes a REST API built with FastAPI. All endpoints, except public 
 
 ## Auth Routes
 - `POST /api/v1/auth/login` - Obtain JWT access token.
-- `POST /api/v1/auth/register` - Register a new administrator/curator (Admin only).
+
+### Login Payload
+```json
+{
+  "email": "curator@company.com",
+  "password": "securepassword123"
+}
+```
+
+### Mock Login Notes
+A default admin user is seeded on backend startup if one does not already exist.
+- Email: `curator@company.com`
+- Password: `securepassword123`
+
+All protected routes require a valid JWT bearer token in the `Authorization` header.
 
 ## Newsletter Routes
 - `GET /api/v1/newsletters/` - List all newsletters (drafts & sent).

@@ -6,8 +6,8 @@ This is the Python web backend for the Newsletter Portal. It handles JWT authent
 
 1. **Create Virtual Environment:**
    ```bash
-   python -m venv venv
-   source venv/bin/activate
+   python -m venv .venv
+   source .venv/bin/activate
    ```
 2. **Install Dependencies:**
    ```bash
@@ -19,7 +19,14 @@ This is the Python web backend for the Newsletter Portal. It handles JWT authent
    ```
 4. **Launch Server:**
    ```bash
-   uvicorn app.main:app --reload
+   python -m uvicorn app.main:app --reload
    ```
+
+## Mock Login
+The backend seeds a default admin user on startup if one does not already exist.
+- Email: `curator@company.com`
+- Password: `securepassword123`
+
+Use `POST /api/v1/auth/login` to request a JWT token.
 
 The API docs will be available at `http://localhost:8000/docs` (Swagger UI).

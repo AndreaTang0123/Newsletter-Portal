@@ -11,6 +11,7 @@ The Newsletter Portal is an AI-powered administration platform designed to manag
 ## Core Features
 - **AI-Powered Draft Generation:** Integrates with an LLM (e.g., Gemini) to build newsletter copy based on topics, article links, and chosen tones.
 - **Rich Text & Block Editor:** Provides curators with a visual interface to preview and fine-tune email formats.
+- **Secure Login & Session Management:** Supports a login interface for curators/administrators, plus logout and Microsoft Entra ID SSO planned for future release.
 - **Subscription Management:** Offers categorized subscription control (e.g., Engineering, Marketing, HR updates).
 - **History & Analytics Tracker:** Details email delivery metrics, open rates, and subscription updates.
 - **Unsubscribe & Manage Preferences:** An easy employee self-service landing page that processes preference modifications.

@@ -40,8 +40,8 @@ An AI-powered email newsletter administration system that lets content curators 
    ```
 2. Create virtual environment:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 3. Install dependencies:
    ```bash
@@ -53,12 +53,19 @@ An AI-powered email newsletter administration system that lets content curators 
    ```
 5. Run the server:
    ```bash
-   uvicorn app.main:app --reload
+   python -m uvicorn app.main:app --reload
    ```
+
+### Mock login
+The backend seeds a default admin user on startup if one does not already exist.
+- Email: `curator@company.com`
+- Password: `securepassword123`
+
+The frontend login UI currently uses mock authentication and will later be replaced by Microsoft Entra ID.
 
 ## Detailed Documentation
 Refer to files in the `docs/` directory:
-- [Project Overview](file:///Users/andreatang/Desktop/Newsletter-Portal/docs/project-overview.md)
-- [API Documentation](file:///Users/andreatang/Desktop/Newsletter-Portal/docs/api-documentation.md)
-- [Database Schema](file:///Users/andreatang/Desktop/Newsletter-Portal/docs/database-schema.md)
-- [Deployment Plan](file:///Users/andreatang/Desktop/Newsletter-Portal/docs/deployment-plan.md)
+- [Project Overview](docs/project-overview.md)
+- [API Documentation](docs/api-documentation.md)
+- [Database Schema](docs/database-schema.md)
+- [Deployment Plan](docs/deployment-plan.md)

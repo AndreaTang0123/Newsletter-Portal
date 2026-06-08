@@ -13,7 +13,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ### Frontend Dockerfile (Example)
@@ -40,3 +40,4 @@ CMD ["npm", "run", "start"]
 2. **Mail Service:** SES, Mailgun, or SendGrid integration credentials.
 3. **Cache / Message Queue:** Redis (if Celery/task queue is utilized for async mass mail dispatch).
 4. **Secrets Management:** Environment variables injected securely via deployment platforms.
+5. **Local Backend Runtime:** The backend currently uses a Python virtual environment created under `.venv` and launches with `python -m uvicorn app.main:app --reload` in development.
