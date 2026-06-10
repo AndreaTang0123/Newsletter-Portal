@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Save, Send, Eye, Code } from 'lucide-react';
 import { newsletterApi } from '../lib/api';
 
@@ -55,6 +55,17 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
     }
   };
 
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+    setContent(initialContent);
+
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialContent;
+    }
+  }, [initialTitle, initialContent]);
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
       {/* Left panel: Editor */}
@@ -86,24 +97,47 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
-            EMAIL CONTENT (HTML SUPPORTED)
+            EMAIL CONTENT (VISUAL HTML PASTE SUPPORTED)
           </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write HTML here..."
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            data-placeholder="Paste Outlook email here..."
+            onInput={(e) => {
+              setContent(e.currentTarget.innerHTML);
+            }}
+            onPaste={(e) => {
+              const html = e.clipboardData.getData('text/html');
+              const text = e.clipboardData.getData('text/plain');
+
+              console.log('Clipboard HTML:', html);
+              console.log('Clipboard Text:', text);
+
+              if (html) {
+                e.preventDefault();
+
+                document.execCommand('insertHTML', false, html);
+
+                setTimeout(() => {
+                  if (editorRef.current) {
+                    setContent(editorRef.current.innerHTML);
+                  }
+                }, 0);
+              }
+            }}
             style={{
               width: '100%',
               height: '350px',
               padding: '12px',
               borderRadius: '8px',
-              background: 'var(--bg-secondary)',
+              background: '#fff',
               border: '1px solid var(--border-glass)',
-              color: 'var(--text-primary)',
+              color: '#000',
               outline: 'none',
-              fontFamily: 'monospace',
+              fontFamily: 'Arial, sans-serif',
               fontSize: '0.9rem',
-              resize: 'vertical',
+              overflowY: 'auto',
               lineHeight: '1.4'
             }}
           />
