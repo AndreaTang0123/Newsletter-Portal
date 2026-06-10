@@ -99,3 +99,60 @@ def update_newsletter(db: Session, db_newsletter: models.Newsletter, updates: sc
     db.commit()
     db.refresh(db_newsletter)
     return db_newsletter
+
+# SendHistory CRUD
+def create_send_history(db: Session, newsletter_id: int, recipient_email: str, category: str = None, status: str = "success", error_message: str = None):
+    db_send_history = models.SendHistory(
+        newsletter_id=newsletter_id,
+        recipient_email=recipient_email,
+        category=category,
+        status=status,
+        error_message=error_message
+    )
+    db.add(db_send_history)
+    db.commit()
+    db.refresh(db_send_history)
+    return db_send_history
+
+def get_send_history(db: Session, send_history_id: int):
+    return db.query(models.SendHistory).filter(models.SendHistory.id == send_history_id).first()
+
+# EmailOpenEvent CRUD
+def create_email_open_event(db: Session, send_history_id: int):
+    db_open_event = models.EmailOpenEvent(send_history_id=send_history_id)
+    db.add(db_open_event)
+    db.commit()
+    db.refresh(db_open_event)
+    return db_open_event
+
+# Dashboard Statistics
+def get_dashboard_statistics(db: Session):
+    from sqlalchemy import func
+    
+    # Total newsletters (sent status)
+    total_newsletters = db.query(func.count(models.Newsletter.id)).filter(
+        models.Newsletter.status == "sent"
+    ).scalar() or 0
+    
+    # Success rate
+    total_sends = db.query(func.count(models.SendHistory.id)).scalar() or 0
+    successful_sends = db.query(func.count(models.SendHistory.id)).filter(
+        models.SendHistory.status == "success"
+    ).scalar() or 0
+    
+    success_rate = 0.0
+    if total_sends > 0:
+        success_rate = (successful_sends / total_sends) * 100
+    
+    # Open rate
+    opened_sends = db.query(func.count(func.distinct(models.EmailOpenEvent.send_history_id))).scalar() or 0
+    
+    open_rate = 0.0
+    if successful_sends > 0:
+        open_rate = (opened_sends / successful_sends) * 100
+    
+    return {
+        "total_newsletters": total_newsletters,
+        "success_rate": round(success_rate, 1),
+        "open_rate": round(open_rate, 1)
+    }

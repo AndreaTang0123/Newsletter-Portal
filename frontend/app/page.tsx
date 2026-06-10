@@ -7,7 +7,7 @@ import { AIDraftWizard } from '../components/AIDraftWizard';
 import { NewsletterEditor } from '../components/NewsletterEditor';
 import { SubscribersList } from '../components/SubscribersList';
 import { NewsletterHistory } from '../components/NewsletterHistory';
-import { authApi } from '../lib/api';
+import { authApi, dashboardApi } from '../lib/api';
 import { Mail, ShieldCheck, Cpu, Send, CheckCircle, BarChart3 } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -19,6 +19,13 @@ export default function DashboardHome() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
+  const [statistics, setStatistics] = useState({
+    total_newsletters: 0,
+    success_rate: 0,
+    open_rate: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [statsError, setStatsError] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -28,6 +35,26 @@ export default function DashboardHome() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (loggedIn && currentTab === 'dashboard') {
+      fetchStatistics();
+    }
+  }, [loggedIn, currentTab]);
+
+  const fetchStatistics = async () => {
+    setLoadingStats(true);
+    setStatsError('');
+    try {
+      const response = await dashboardApi.getStatistics();
+      setStatistics(response.data);
+    } catch (error) {
+      setStatsError('Failed to load statistics');
+      console.error('Error fetching statistics:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -142,7 +169,9 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>CAMPAIGNS SENT</h4>
-                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>142</p>
+                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>
+                    {loadingStats ? '...' : statistics.total_newsletters}
+                  </p>
                 </div>
               </div>
 
@@ -152,7 +181,9 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>DELIVERY SUCCESS</h4>
-                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>99.8%</p>
+                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>
+                    {loadingStats ? '...' : `${statistics.success_rate.toFixed(1)}%`}
+                  </p>
                 </div>
               </div>
 
@@ -162,10 +193,18 @@ export default function DashboardHome() {
                 </div>
                 <div>
                   <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>OPEN RATE</h4>
-                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>74.2%</p>
+                  <p style={{ fontSize: '1.6rem', fontWeight: 700, marginTop: '4px' }}>
+                    {loadingStats ? '...' : `${statistics.open_rate.toFixed(1)}%`}
+                  </p>
                 </div>
               </div>
             </div>
+
+            {statsError && (
+              <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: 'var(--color-error)', fontSize: '0.9rem' }}>
+                {statsError}
+              </div>
+            )}
 
             {/* AI Prompting Quick Access */}
             <AIDraftWizard onDraftGenerated={handleDraftGenerated} />

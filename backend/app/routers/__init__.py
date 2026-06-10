@@ -1,1 +1,1 @@
-from . import ai, auth, categories, email, newsletters, subscribers
+from . import ai, auth, categories, email, newsletters, subscribers, statistics
