@@ -69,6 +69,7 @@ class Newsletter(Base):
     curator = relationship("User", back_populates="newsletters")
     categories = relationship("Category", secondary=newsletter_category, back_populates="newsletters")
     delivery_logs = relationship("CampaignHistory", back_populates="newsletter")
+    send_history = relationship("SendHistory", back_populates="newsletter", cascade="all, delete-orphan")
 
 class CampaignHistory(Base):
     __tablename__ = "campaign_history"
@@ -81,3 +82,26 @@ class CampaignHistory(Base):
 
     newsletter = relationship("Newsletter", back_populates="delivery_logs")
     subscriber = relationship("Subscriber", back_populates="delivery_logs")
+
+class SendHistory(Base):
+    __tablename__ = "send_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    newsletter_id = Column(Integer, ForeignKey("newsletters.id", ondelete="CASCADE"), nullable=False)
+    recipient_email = Column(String, nullable=False)
+    category = Column(String, nullable=True)
+    status = Column(String, default="pending")  # success, failed, pending
+    error_message = Column(String, nullable=True)
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    newsletter = relationship("Newsletter", back_populates="send_history")
+    open_events = relationship("EmailOpenEvent", back_populates="send_history", cascade="all, delete-orphan")
+
+class EmailOpenEvent(Base):
+    __tablename__ = "email_open_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    send_history_id = Column(Integer, ForeignKey("send_history.id", ondelete="CASCADE"), nullable=False)
+    opened_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    send_history = relationship("SendHistory", back_populates="open_events")

@@ -8,6 +8,20 @@ SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+def inject_tracking_pixel(html_content: str, send_history_id: int) -> str:
+    """Inject a tracking pixel into HTML content for open tracking."""
+    tracking_url = f"{API_URL}/api/v1/track/open/{send_history_id}"
+    tracking_pixel = f'<img src="{tracking_url}" width="1" height="1" alt="" style="display:none;" />'
+    
+    # Insert before closing body tag if it exists, otherwise append
+    if '</body>' in html_content.lower():
+        html_content = html_content.replace('</body>', f'{tracking_pixel}</body>')
+    else:
+        html_content = html_content + tracking_pixel
+    
+    return html_content
 
 def send_email(to_email: str, subject: str, html_content: str):
     if not SMTP_USER or not SMTP_PASSWORD:
