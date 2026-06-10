@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, Base, SessionLocal
+from .init_db import seed_database
 from .routers import newsletters, subscribers, categories, ai, email, auth, statistics
 from . import models, crud, schemas
 
-# Initialize database schemas
-Base.metadata.create_all(bind=engine)
+# Initialize database schemas and seed default data
+seed_database()
 
 app = FastAPI(
     title="Newsletter Portal API",
@@ -34,35 +34,3 @@ app.include_router(statistics.router, prefix="/api/v1")
 @app.get("/")
 def read_root():
     return {"message": "Newsletter Portal API is running."}
-
-# Auto-seed initial configurations on startup
-@app.on_event("startup")
-def seed_database():
-    db = SessionLocal()
-    try:
-        # Seed Categories if not exist
-        existing_cats = crud.get_categories(db)
-        if not existing_cats:
-            initial_categories = [
-                schemas.CategoryCreate(name="Engineering Updates", description="Technical updates and framework migrations"),
-                schemas.CategoryCreate(name="HR Announcements", description="Internal news, health plans, and policies"),
-                schemas.CategoryCreate(name="Marketing & Events", description="Product releases and company events"),
-            ]
-            for cat in initial_categories:
-                crud.create_category(db, cat)
-            print("Successfully seeded initial Categories.")
-
-        # Seed default curator User if not exists
-        curator = crud.get_user_by_email(db, "curator@company.com")
-        if not curator:
-            default_user = schemas.UserCreate(
-                email="curator@company.com",
-                full_name="Andrea Tang",
-                password="securepassword123",
-                role="admin"
-            )
-            crud.create_user(db, default_user)
-            print("Successfully seeded default Admin User (curator@company.com / securepassword123).")
-            
-    finally:
-        db.close()
