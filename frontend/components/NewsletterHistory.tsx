@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Eye, Repeat, FileText, Search } from 'lucide-react';
-
+const CATEGORY_TABS = ['All', 'HAE', 'NS', 'CMD'];
 const sentHistory = [
   {
     id: 1,
@@ -36,9 +36,11 @@ const sentHistory = [
 
 export const NewsletterHistory: React.FC = () => {
   const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [audienceFilter, setAudienceFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('recent-first');
+  
 
   const allAudiences = Array.from(new Set(sentHistory.flatMap((item) => item.audience)));
   const allStatuses = Array.from(new Set(sentHistory.map((item) => item.status)));
@@ -53,6 +55,7 @@ export const NewsletterHistory: React.FC = () => {
 
   const filteredHistory = sentHistory
     .filter((item) => item.title.toLowerCase().includes(search.toLowerCase()))
+    .filter((item) => activeCategory === 'All' || item.category === activeCategory || item.audience.includes(activeCategory))
     .filter((item) => audienceFilter === 'All' || item.audience.includes(audienceFilter))
     .filter((item) => statusFilter === 'All' || item.status === statusFilter)
     .sort((a, b) => {
@@ -63,7 +66,7 @@ export const NewsletterHistory: React.FC = () => {
 
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <FileText size={20} color="var(--color-primary)" />
@@ -140,7 +143,31 @@ export const NewsletterHistory: React.FC = () => {
           </div>
         </div>
       </div>
-
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+        {CATEGORY_TABS.map((tab) => {
+          const isActive = activeCategory === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveCategory(tab)}
+              style={{
+                border: isActive ? '1px solid var(--color-primary)' : '1px solid var(--border-glass)',
+                background: isActive ? 'rgba(94, 187, 148, 0.12)' : 'var(--bg-secondary)',
+                color: isActive ? 'var(--color-secondary)' : 'var(--text-primary)',
+                borderRadius: '999px',
+                padding: '8px 14px',
+                fontWeight: isActive ? 700 : 500,
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+              }}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </div>
+      
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
           <thead>

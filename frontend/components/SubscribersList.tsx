@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { UserPlus, Upload, Search, Filter } from 'lucide-react';
+import { UserPlus, Upload, Search } from 'lucide-react';
 import { subscriberApi } from '../lib/api';
 
-const AVAILABLE_CATEGORIES = ['HAE', 'NS', 'CMD'];
+const AVAILABLE_CATEGORIES = ['All','HAE', 'NS', 'CMD'];
 
 export const SubscribersList: React.FC = () => {
   const [subscribers, setSubscribers] = useState([
@@ -12,7 +12,7 @@ export const SubscribersList: React.FC = () => {
   ]);
 
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [importing, setImporting] = useState(false);
 
   const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +43,7 @@ export const SubscribersList: React.FC = () => {
       s.email.toLowerCase().includes(search.toLowerCase()) || 
       s.full_name.toLowerCase().includes(search.toLowerCase())
     )
-    .filter(s => categoryFilter === 'All' || s.categories.includes(categoryFilter));
+    .filter(s => activeCategory === 'All' || s.categories.includes(activeCategory));
 
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>
@@ -67,7 +67,30 @@ export const SubscribersList: React.FC = () => {
           </button>
         </div>
       </div>
-
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        {AVAILABLE_CATEGORIES.map((tab) => {
+          const isActive = activeCategory === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveCategory(tab)}
+              style={{
+                border: isActive ? '1px solid var(--color-primary)' : '1px solid var(--border-glass)',
+                background: isActive ? 'rgba(94, 187, 148, 0.12)' : 'var(--bg-secondary)',
+                color: isActive ? 'var(--color-secondary)' : 'var(--text-primary)',
+                borderRadius: '999px',
+                padding: '8px 14px',
+                fontWeight: isActive ? 700 : 500,
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+              }}
+            >
+              {tab === 'All' ? 'All' : tab}
+            </button>
+          );
+        })}
+      </div>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
         <div style={{
           display: 'flex',
@@ -97,26 +120,7 @@ export const SubscribersList: React.FC = () => {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Filter size={16} color="var(--text-secondary)" />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid var(--border-glass)',
-              background: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              minWidth: '160px'
-            }}
-          >
-            <option value="All">All Categories</option>
-            {AVAILABLE_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+        
       </div>
 
       <div style={{ overflowX: 'auto' }}>

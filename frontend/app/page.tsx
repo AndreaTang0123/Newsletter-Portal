@@ -59,7 +59,7 @@ export default function DashboardHome() {
       <main style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px', padding: '48px' }}>
         <section style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px', maxWidth: '560px' }}>
           <div>
-            <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>PortalAI</p>
+            <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>Newsletter Portal</p>
             <h1 style={{ fontSize: '3rem', lineHeight: 1.05, maxWidth: '540px' }}>SDIO Newsletter Portal — sign in securely and manage your send history.</h1>
           </div>
 
@@ -67,20 +67,7 @@ export default function DashboardHome() {
             Manage subscribers, AI-generated content, and send history in one place. Microsoft Entra ID login will be supported in the future; currently using mock login for quick validation.
           </p>
 
-          <div style={{ display: 'grid', gap: '14px' }}>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
-              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>AI-powered newsletter draft creation</p>
-            </div>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
-              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Audience segmentation and send history overview</p>
-            </div>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--color-primary)', marginTop: '8px' }} />
-              <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>Microsoft Entra ID SSO support coming soon</p>
-            </div>
-          </div>
+          
         </section>
 
         <section style={{ alignSelf: 'center' }}>
