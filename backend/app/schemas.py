@@ -26,6 +26,8 @@ class UserLogin(BaseModel):
 class User(UserBase):
     id: int
     is_active: bool
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -40,6 +42,7 @@ class CategoryCreate(CategoryBase):
 
 class Category(CategoryBase):
     id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -48,11 +51,16 @@ class Category(CategoryBase):
 class SubscriberBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
+    company: Optional[str] = None
+    department: Optional[str] = None
 
 class SubscriberCreate(SubscriberBase):
     category_ids: List[int] = []
 
 class SubscriberUpdate(BaseModel):
+    full_name: Optional[str] = None
+    company: Optional[str] = None
+    department: Optional[str] = None
     is_subscribed: Optional[bool] = None
     category_ids: Optional[List[int]] = None
 
@@ -63,7 +71,9 @@ class SubscriberUnsubscribePublic(BaseModel):
 class Subscriber(SubscriberBase):
     id: int
     is_subscribed: bool
+    is_active: bool
     created_at: datetime
+    updated_at: datetime
     categories: List[Category] = []
 
     class Config:
@@ -92,6 +102,7 @@ class Newsletter(NewsletterBase):
     status: str
     curator_id: int
     created_at: datetime
+    updated_at: datetime
     sent_at: Optional[datetime] = None
     categories: List[Category] = []
 
@@ -108,6 +119,53 @@ class CampaignHistory(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Send History Schemas
+class SendHistoryBase(BaseModel):
+    recipient_email: EmailStr
+    category: Optional[str] = None
+    status: str = "pending"
+    error_message: Optional[str] = None
+
+class SendHistory(SendHistoryBase):
+    id: int
+    newsletter_id: int
+    subscriber_id: Optional[int] = None
+    sent_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Email Open Event Schemas
+class EmailOpenEventBase(BaseModel):
+    user_agent: Optional[str] = None
+    ip_address: Optional[str] = None
+
+class EmailOpenEvent(EmailOpenEventBase):
+    id: int
+    send_history_id: int
+    opened_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Subscription Event Schemas
+class SubscriptionEvent(BaseModel):
+    id: int
+    subscriber_id: int
+    category_id: Optional[int] = None
+    user_id: Optional[int] = None
+    action: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Statistics Schemas
+class DashboardStatistics(BaseModel):
+    total_newsletters: int
+    success_rate: float
+    open_rate: float
 
 # AI Generation Schemas
 class AIDraftRequest(BaseModel):
