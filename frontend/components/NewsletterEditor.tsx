@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Send, Eye, Code } from 'lucide-react';
+import { Save, Send } from 'lucide-react';
 import { newsletterApi } from '../lib/api';
 
 interface NewsletterEditorProps {
@@ -15,7 +15,6 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
 }) => {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -67,10 +66,9 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
   }, [initialTitle, initialContent]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
-      {/* Left panel: Editor */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Edit Campaign Details</h3>
+    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '1080px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Edit Email Details</h3>
         
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
@@ -162,69 +160,7 @@ export const NewsletterEditor: React.FC<NewsletterEditorProps> = ({
         </div>
       </div>
 
-      {/* Right panel: Realtime Preview */}
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1.2rem' }}>Live Preview</h3>
-          <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '6px', border: '1px solid var(--border-glass)' }}>
-            <button
-              onClick={() => setPreviewMode('desktop')}
-              style={{
-                background: previewMode === 'desktop' ? 'rgba(0,0,0,0.05)' : 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
-            >
-              Desktop
-            </button>
-            <button
-              onClick={() => setPreviewMode('mobile')}
-              style={{
-                background: previewMode === 'mobile' ? 'rgba(0,0,0,0.05)' : 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
-            >
-              Mobile
-            </button>
-          </div>
-        </div>
-
-        <div style={{
-          flex: 1,
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px',
-          overflowY: 'auto',
-          maxWidth: previewMode === 'mobile' ? '360px' : '100%',
-          margin: '0 auto',
-          width: '100%',
-          minHeight: '380px',
-          boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.1)',
-          transition: 'all 0.3s ease'
-        }}>
-          {title ? (
-            <div style={{ fontFamily: 'sans-serif', color: '#000' }}>
-              <div style={{ background: '#f8fafc', padding: '10px 14px', borderBottom: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#64748b', marginBottom: '16px', borderRadius: '4px' }}>
-                <strong>Subject:</strong> {title}
-              </div>
-              <div dangerouslySetInnerHTML={{ __html: content || '<p style="color: #94a3b8; font-style: italic;">No content yet. Generate one with AI or type in the editor.</p>' }} />
-            </div>
-          ) : (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: '0.9rem' }}>
-              Subject and body preview will appear here...
-            </div>
-          )}
-        </div>
-      </div>
+      
     </div>
   );
 };

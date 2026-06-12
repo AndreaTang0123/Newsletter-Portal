@@ -7,47 +7,70 @@ interface AIDraftWizardProps {
 }
 
 export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }) => {
-  const [prompt, setPrompt] = useState('');
+  const [htmlContent, setHtmlContent] = useState('');
   const [category, setCategory] = useState(1);
   const [tone, setTone] = useState('professional');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGenerate = async (e: React.FormEvent) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (!prompt.trim()) return;
+
+    const html = e.clipboardData.getData('text/html');
+    const text = e.clipboardData.getData('text/plain');
+
+    const pastedContent = html || text.replace(/\n/g, '<br />');
+
+    e.currentTarget.innerHTML = pastedContent;
+    setHtmlContent(pastedContent);
+    setError('');
+  };
+
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    setHtmlContent(e.currentTarget.innerHTML);
+    setError('');
+  };
+
+  const handleGenerateOverview = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!htmlContent.trim()) {
+      setError('Please paste HTML email content first.');
+      return;
+    }
 
     setGenerating(true);
     setError('');
 
     try {
-      // Simulate backend AI latency
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await aiApi.generateOverview(
+        htmlContent,
+        category,
+        tone
+      );
 
-      const response = await aiApi.generateDraft(prompt, category, tone);
-      onDraftGenerated(response.data);
-    } catch (err: any) {
-      console.warn('API connection failed, generating local fallback draft...', err);
-      // Fallback for demonstration/mock environments
+      const aiOverviewHtml = response.data.content_html;
+
       onDraftGenerated({
-        title: `AI Draft: ${prompt.slice(0, 30)}${prompt.length > 30 ? '...' : ''}`,
+        title: response.data.title || 'Imported HTML Newsletter',
         content_html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: var(--color-primary);">Welcome to our Latest Update!</h2>
-            <p>Following your prompt about <strong>"${prompt}"</strong>, we put together this newsletter draft with a <strong>${tone}</strong> tone.</p>
-            <p>Key highlights this week:</p>
-            <ul>
-              <li>Exploring the core concepts of our new features.</li>
-              <li>How team collaboration drives better customer success.</li>
-              <li>Updates, fixes, and community contributions.</li>
-            </ul>
-            <p>Thank you for subscribing! Stay tuned for more.</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="font-size: 11px; color: #999;">
-              You are receiving this because you subscribed to category updates. 
-              <a href="/unsubscribe" style="color: var(--color-primary);">Unsubscribe</a>
-            </p>
+          <div style="font-family: Arial, sans-serif; padding: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            ${aiOverviewHtml}
           </div>
+          ${htmlContent}
+        `
+      });
+    } catch (err: any) {
+      console.warn('AI overview generation failed, using local fallback...', err);
+
+      onDraftGenerated({
+        title: 'Imported HTML Newsletter',
+        content_html: `
+          <div style="font-family: Arial, sans-serif; padding: 16px; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+            <h2 style="margin-top: 0;">Newsletter Overview</h2>
+            <p>Here is a quick overview of the newsletter content below. Please review the imported email before sending.</p>
+          </div>
+          ${htmlContent}
         `
       });
     } finally {
@@ -59,25 +82,29 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
     <div className="glass-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
         <Sparkles size={20} color="var(--color-primary)" />
-        <h3 style={{ fontSize: '1.2rem' }}>AI Draft Assistant</h3>
+        <h3 style={{ fontSize: '1.2rem' }}>AI HTML Newsletter Assistant</h3>
       </div>
+
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
-        Provide a topic, specify details, and let AI build the foundation of your next newsletter campaign.
+        Paste an Outlook-style HTML email. AI will add a short summary/overview before the original email content while keeping the HTML format.
       </p>
 
-      <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleGenerateOverview} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
-            WHAT IS THIS NEWSLETTER ABOUT?
+            PASTE HTML EMAIL CONTENT
           </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., Q2 Engineering progress and new API documentation launch..."
+
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            onPaste={handlePaste}
+            onInput={handleInput}
+            data-placeholder="Paste your Outlook-style HTML email here..."
             style={{
               width: '100%',
-              minHeight: '100px',
-              padding: '12px',
+              minHeight: '260px',
+              padding: '16px',
               borderRadius: '8px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-glass)',
@@ -85,17 +112,23 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
               outline: 'none',
               fontFamily: 'inherit',
               fontSize: '0.9rem',
-              resize: 'vertical'
+              overflow: 'auto'
             }}
-            required
           />
         </div>
+
+        {error && (
+          <div style={{ color: '#dc2626', fontSize: '0.85rem' }}>
+            {error}
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
               CATEGORY
             </label>
+
             <select
               value={category}
               onChange={(e) => setCategory(Number(e.target.value))}
@@ -117,8 +150,9 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
 
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: 600 }}>
-              TONE OF VOICE
+              OVERVIEW TONE
             </label>
+
             <select
               value={tone}
               onChange={(e) => setTone(e.target.value)}
@@ -142,18 +176,18 @@ export const AIDraftWizard: React.FC<AIDraftWizardProps> = ({ onDraftGenerated }
 
         <button
           type="submit"
-          disabled={generating || !prompt.trim()}
+          disabled={generating || !htmlContent.trim()}
           className="btn-primary"
-          style={{ alignSelf: 'flex-start', marginTop: '8px', opacity: !prompt.trim() ? 0.6 : 1 }}
+          style={{ alignSelf: 'flex-start', marginTop: '8px', opacity: !htmlContent.trim() ? 0.6 : 1 }}
         >
           {generating ? (
             <>
               <Loader2 size={18} className="pulse-glow" style={{ animation: 'spin 1s linear infinite' }} />
-              Drafting Article...
+              Generating Overview...
             </>
           ) : (
             <>
-              Generate Draft
+              Add AI Overview & Continue
               <ArrowRight size={18} />
             </>
           )}

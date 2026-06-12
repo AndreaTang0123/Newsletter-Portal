@@ -52,6 +52,13 @@ export const categoryApi = {
 export const aiApi = {
   generateDraft: (prompt: string, categoryId: number, tone: string) =>
     apiClient.post('/ai/generate-draft', { prompt, category_id: categoryId, tone }),
+
+  generateOverview: (htmlContent: string, categoryId: number, tone: string) =>
+    apiClient.post('/ai/generate-draft', {
+      prompt: htmlContent,
+      category_id: categoryId,
+      tone,
+    }),
 };
 
 export const dashboardApi = {
