@@ -86,7 +86,7 @@ export default function DashboardHome() {
       <main style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px', padding: '48px' }}>
         <section style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px', maxWidth: '560px' }}>
           <div>
-            <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>Newsletter Portal</p>
+            <p style={{ textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '18px' }}>Newsletter Subscriber Portal</p>
             <h1 style={{ fontSize: '3rem', lineHeight: 1.05, maxWidth: '540px' }}>SDIO Newsletter Portal — sign in securely and manage your send history.</h1>
           </div>
 
@@ -94,7 +94,7 @@ export default function DashboardHome() {
             Manage subscribers, AI-generated content, and send history in one place. Microsoft Entra ID login will be supported in the future; currently using mock login for quick validation.
           </p>
 
-          
+
         </section>
 
         <section style={{ alignSelf: 'center' }}>
@@ -247,9 +247,9 @@ export default function DashboardHome() {
 
         {currentTab === 'newsletters' && (
           <div>
-            <NewsletterEditor 
-              initialTitle={draftTitle} 
-              initialContent={draftContent} 
+            <NewsletterEditor
+              initialTitle={draftTitle}
+              initialContent={draftContent}
               onSaved={() => {
                 setDraftTitle('');
                 setDraftContent('');
@@ -277,7 +277,7 @@ export default function DashboardHome() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '24px' }}>
                 Manage roles and assign access to system components.
               </p>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                   <div>
@@ -318,7 +318,7 @@ export default function DashboardHome() {
                 </div>
               </div>
             </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 className="btn-secondary"
                 onClick={() => {
