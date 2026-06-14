@@ -1,7 +1,7 @@
 """
 Database initialization and seeding module for Newsletter Portal.
 This module provides functions to initialize the database schema and seed
-initial data (categories and default admin user).
+initial data (distribution lists and default admin user).
 
 Designed for Azure SQL compatibility - uses only standard SQLAlchemy ORM.
 """
@@ -20,33 +20,57 @@ def init_database():
     Base.metadata.create_all(bind=engine)
 
 
-def seed_default_categories(db: Session):
+def seed_default_lists(db: Session):
     """
-    Seed default categories if they don't exist.
+    Seed default lists if they don't exist.
     Idempotent - safe to call multiple times.
     
-    Default categories:
-    - HAE: Hardware & Architecture Engineering
-    - NS: Network & Systems
-    - CMD: Communications & Marketing Digest
+    Default lists matching the Pilot PRD:
+    - Weekly Newsletter (Weekly CI Newsletter)
+    - HAE (Hardware & Architecture Engineering curated alerts)
+    - CMD (Communications & Marketing Digest curated alerts)
+    - NS (Network & Systems curated alerts)
     """
-    default_categories = [
-        {"name": "HAE", "description": "Hardware & Architecture Engineering"},
-        {"name": "NS", "description": "Network & Systems"},
-        {"name": "CMD", "description": "Communications & Marketing Digest"},
+    default_lists = [
+        {
+            "name": "Weekly Newsletter", 
+            "description": "Weekly CI Newsletter distribution list", 
+            "owner": "Alex Sherman", 
+            "category": "Weekly"
+        },
+        {
+            "name": "HAE", 
+            "description": "HAE curated alerts distribution list", 
+            "owner": "Alex Sherman", 
+            "category": "HAE"
+        },
+        {
+            "name": "CMD", 
+            "description": "CMD curated alerts distribution list", 
+            "owner": "Warren", 
+            "category": "CMD"
+        },
+        {
+            "name": "NS", 
+            "description": "NS curated alerts distribution list", 
+            "owner": "Warren", 
+            "category": "NS"
+        },
     ]
     
-    for cat_data in default_categories:
-        existing = db.query(models.Category).filter(
-            models.Category.name == cat_data["name"]
+    for lst_data in default_lists:
+        existing = db.query(models.List).filter(
+            models.List.name == lst_data["name"]
         ).first()
         
         if not existing:
-            category = models.Category(
-                name=cat_data["name"],
-                description=cat_data["description"]
+            lst = models.List(
+                name=lst_data["name"],
+                description=lst_data["description"],
+                owner=lst_data["owner"],
+                category=lst_data["category"]
             )
-            db.add(category)
+            db.add(lst)
     
     db.commit()
 
@@ -89,14 +113,14 @@ def seed_database():
     
     This function:
     1. Creates all tables
-    2. Seeds default categories (HAE, NS, CMD)
+    2. Seeds default lists (Weekly, HAE, CMD, NS)
     3. Seeds default admin user
     """
     init_database()
     
     db = SessionLocal()
     try:
-        seed_default_categories(db)
+        seed_default_lists(db)
         seed_default_admin_user(db)
     finally:
         db.close()

@@ -19,8 +19,7 @@ def verify_models():
         
         # Verify all models exist
         required_models = [
-            'User', 'Subscriber', 'Category', 'Newsletter',
-            'SendHistory', 'EmailOpenEvent', 'CampaignHistory', 'SubscriptionEvent'
+            'User', 'List', 'Subscriber', 'Subscription', 'AuditLog'
         ]
         for model_name in required_models:
             assert hasattr(models, model_name), f"Model {model_name} not found"
@@ -39,12 +38,10 @@ def verify_crud():
         # Verify key CRUD functions exist
         required_functions = [
             'get_user_by_email', 'create_user',
-            'get_categories', 'create_category',
-            'get_subscribers', 'create_subscriber', 'update_subscriber',
-            'get_newsletters', 'create_newsletter',
-            'create_send_history', 'get_send_history',
-            'create_email_open_event',
-            'get_dashboard_statistics'
+            'get_lists', 'create_list', 'get_list_stats', 'get_lists_with_stats',
+            'get_subscribers', 'create_subscriber', 'get_subscribers_master',
+            'add_subscriber_to_list', 'update_subscription', 'delete_subscription',
+            'create_audit_log', 'get_audit_logs', 'get_dashboard_stats'
         ]
         for func_name in required_functions:
             assert hasattr(crud, func_name), f"CRUD function {func_name} not found"
@@ -62,9 +59,9 @@ def verify_schemas():
         
         # Verify key schemas exist
         required_schemas = [
-            'User', 'Category', 'Subscriber', 'Newsletter',
-            'SendHistory', 'EmailOpenEvent', 'SubscriptionEvent',
-            'DashboardStatistics'
+            'User', 'List', 'Subscriber', 'Subscription',
+            'SubscriberMaster', 'ImportPreviewResponse', 'AuditLogResponse',
+            'DashboardStatsResponse'
         ]
         for schema_name in required_schemas:
             assert hasattr(schemas, schema_name), f"Schema {schema_name} not found"
@@ -82,7 +79,7 @@ def verify_init_db():
         
         # Verify key functions exist
         required_functions = [
-            'init_database', 'seed_default_categories',
+            'init_database', 'seed_default_lists',
             'seed_default_admin_user', 'seed_database'
         ]
         for func_name in required_functions:
@@ -115,7 +112,7 @@ def verify_database_config():
 def main():
     """Run all verifications."""
     print("=" * 60)
-    print("Newsletter Portal Database Layer Verification")
+    print("Newsletter Portal Database Layer Verification (Refocused)")
     print("=" * 60)
     print()
     
@@ -135,11 +132,6 @@ def main():
     print("\n" + "=" * 60)
     if all(results):
         print("✓ All verifications passed!")
-        print("\nThe database layer is properly configured. Next steps:")
-        print("1. Create a virtual environment: python -m venv .venv")
-        print("2. Activate it: .venv\\Scripts\\activate (on Windows)")
-        print("3. Install dependencies: pip install -r requirements.txt")
-        print("4. Run the backend: python -m uvicorn app.main:app --reload")
         return 0
     else:
         print("✗ Some verifications failed. Please review the errors above.")

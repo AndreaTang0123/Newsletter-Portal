@@ -1,1 +1,1 @@
-from . import ai, auth, categories, email, newsletters, subscribers, statistics
+# Routers are imported explicitly in main.py

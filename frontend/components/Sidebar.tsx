@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Mail, Users, Settings, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, FileText, Upload, History, List } from 'lucide-react';
 
 interface SidebarProps {
   currentTab: string;
@@ -9,9 +9,10 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'newsletters', label: 'Newsletters', icon: Mail },
-    { id: 'subscribers', label: 'Subscribers', icon: Users },
-    { id: 'send-history', label: 'Send History', icon: FileText },
+    { id: 'lists', label: 'Distribution Lists', icon: List },
+    { id: 'master-subscribers', label: 'Master Subscribers', icon: Users },
+    { id: 'import', label: 'Import CSV', icon: Upload },
+    { id: 'audit-logs', label: 'Audit Logs', icon: History },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -28,7 +29,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id;
+          const isActive = currentTab === item.id || 
+            (item.id === 'lists' && currentTab.startsWith('list-detail-'));
           return (
             <button
               key={item.id}

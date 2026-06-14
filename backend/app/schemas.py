@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import List as TypingList, Optional, Any
 from datetime import datetime
 
 # Token Schemas
@@ -32,147 +32,190 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
-# Category Schemas
-class CategoryBase(BaseModel):
+
+# List Schemas
+class ListBase(BaseModel):
     name: str
     description: Optional[str] = None
+    owner: Optional[str] = None
+    category: Optional[str] = None  # Weekly / HAE / CMD / NS
 
-class CategoryCreate(CategoryBase):
+class ListCreate(ListBase):
     pass
 
-class Category(CategoryBase):
+class ListUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    owner: Optional[str] = None
+    category: Optional[str] = None
+
+class List(ListBase):
     id: int
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
+
+class ListWithStats(List):
+    subscriber_count: int
+    active_count: int
+    unsubscribed_count: int
+    bounced_count: int
+
+    class Config:
+        from_attributes = True
+
 
 # Subscriber Schemas
 class SubscriberBase(BaseModel):
     email: EmailStr
-    full_name: Optional[str] = None
-    company: Optional[str] = None
+    name: Optional[str] = None
     department: Optional[str] = None
+    role_title: Optional[str] = None
 
 class SubscriberCreate(SubscriberBase):
-    category_ids: List[int] = []
+    pass
 
 class SubscriberUpdate(BaseModel):
-    full_name: Optional[str] = None
-    company: Optional[str] = None
+    email: Optional[EmailStr] = None
+    name: Optional[str] = None
     department: Optional[str] = None
-    is_subscribed: Optional[bool] = None
-    category_ids: Optional[List[int]] = None
-
-class SubscriberUnsubscribePublic(BaseModel):
-    email: EmailStr
-    category_ids: List[int]
+    role_title: Optional[str] = None
 
 class Subscriber(SubscriberBase):
     id: int
-    is_subscribed: bool
-    is_active: bool
     created_at: datetime
     updated_at: datetime
-    categories: List[Category] = []
 
     class Config:
         from_attributes = True
 
-# Newsletter Schemas
-class NewsletterBase(BaseModel):
-    title: str
-    content_html: str
-    content_text: Optional[str] = None
-    scheduled_for: Optional[datetime] = None
 
-class NewsletterCreate(NewsletterBase):
-    category_ids: List[int] = []
+# Subscription Schemas
+class SubscriptionBase(BaseModel):
+    list_id: int
+    subscriber_id: int
+    status: str = "Active"  # Active / Paused / Unsubscribed / Bounced
+    source: str = "Bulk Import"  # Bulk Import / Curator Added / Self-Service
+    notes: Optional[str] = None
 
-class NewsletterUpdate(BaseModel):
-    title: Optional[str] = None
-    content_html: Optional[str] = None
-    content_text: Optional[str] = None
+class SubscriptionCreate(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    status: str = "Active"
+    source: str = "Curator Added"
+    notes: Optional[str] = None
+    department: Optional[str] = None
+    role_title: Optional[str] = None
+
+class SubscriptionUpdate(BaseModel):
     status: Optional[str] = None
-    scheduled_for: Optional[datetime] = None
-    category_ids: Optional[List[int]] = None
+    source: Optional[str] = None
+    notes: Optional[str] = None
+    opt_in_date: Optional[datetime] = None
+    unsubscribed_at: Optional[datetime] = None
+    # Allow updating subscriber fields inside subscription updates for simpler UI actions
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    department: Optional[str] = None
+    role_title: Optional[str] = None
 
-class Newsletter(NewsletterBase):
+class Subscription(SubscriptionBase):
     id: int
-    status: str
-    curator_id: int
+    opt_in_date: datetime
+    unsubscribed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-    sent_at: Optional[datetime] = None
-    categories: List[Category] = []
 
     class Config:
         from_attributes = True
 
-# Campaign History Schema
-class CampaignHistory(BaseModel):
-    id: int
-    newsletter_id: int
-    subscriber_id: int
+
+# Combined Subscriber Subscription details inside a List
+class SubscriberWithSubscription(BaseModel):
+    id: int  # subscriber_id
+    subscription_id: int
+    name: Optional[str] = None
+    email: EmailStr
+    department: Optional[str] = None
+    role_title: Optional[str] = None
     status: str
+    source: str
+    opt_in_date: datetime
+    unsubscribed_at: Optional[datetime] = None
+    notes: Optional[str] = None
+    created_at: datetime  # subscription created_at
+    updated_at: datetime  # subscription updated_at
+
+    class Config:
+        from_attributes = True
+
+
+# Master Subscriber details across all lists
+class SubscriberSubscriptionSummary(BaseModel):
+    list_id: int
+    list_name: str
+    status: str
+
+class SubscriberMaster(BaseModel):
+    id: int
+    name: Optional[str] = None
+    email: EmailStr
+    department: Optional[str] = None
+    role_title: Optional[str] = None
     updated_at: datetime
+    subscriptions: TypingList[SubscriberSubscriptionSummary]
 
     class Config:
         from_attributes = True
 
-# Send History Schemas
-class SendHistoryBase(BaseModel):
-    recipient_email: EmailStr
-    category: Optional[str] = None
-    status: str = "pending"
-    error_message: Optional[str] = None
 
-class SendHistory(SendHistoryBase):
+# Import Schemas
+class ImportPreviewRow(BaseModel):
+    name: Optional[str] = None
+    email: str
+    status: str  # valid, invalid, duplicate_file, duplicate_db
+    details: Optional[str] = None
+
+class ImportPreviewResponse(BaseModel):
+    rows: TypingList[ImportPreviewRow]
+    total_rows: int
+    valid_count: int
+    duplicate_count: int
+    invalid_count: int
+
+class ImportCommitEntry(BaseModel):
+    name: Optional[str] = None
+    email: EmailStr
+
+class ImportCommitRequest(BaseModel):
+    list_id: int
+    entries: TypingList[ImportCommitEntry]
+
+
+# Audit Log Schemas
+class AuditLogResponse(BaseModel):
     id: int
-    newsletter_id: int
-    subscriber_id: Optional[int] = None
-    sent_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# Email Open Event Schemas
-class EmailOpenEventBase(BaseModel):
-    user_agent: Optional[str] = None
-    ip_address: Optional[str] = None
-
-class EmailOpenEvent(EmailOpenEventBase):
-    id: int
-    send_history_id: int
-    opened_at: datetime
-
-    class Config:
-        from_attributes = True
-
-# Subscription Event Schemas
-class SubscriptionEvent(BaseModel):
-    id: int
-    subscriber_id: int
-    category_id: Optional[int] = None
-    user_id: Optional[int] = None
+    actor: Optional[str] = None
     action: str
-    created_at: datetime
+    list_id: Optional[int] = None
+    list_name: Optional[str] = None
+    subscriber_id: Optional[int] = None
+    subscriber_email: Optional[str] = None
+    timestamp: datetime
+    details: Optional[str] = None
 
     class Config:
         from_attributes = True
+
 
 # Statistics Schemas
-class DashboardStatistics(BaseModel):
-    total_newsletters: int
-    success_rate: float
-    open_rate: float
-
-# AI Generation Schemas
-class AIDraftRequest(BaseModel):
-    prompt: str
-    category_id: int
-    tone: str
-
-class AIDraftResponse(BaseModel):
-    title: str
-    content_html: str
+class DashboardStatsResponse(BaseModel):
+    total_lists: int
+    total_subscribers: int
+    active_subscribers: int
+    unsubscribed_subscribers: int
+    bounced_subscribers: int
+    last_updated: Optional[datetime] = None
+    recent_changes: TypingList[AuditLogResponse]

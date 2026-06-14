@@ -24,36 +24,38 @@ export const authApi = {
   login: (credentials: any) => apiClient.post('/auth/login', credentials),
 };
 
-export const newsletterApi = {
-  list: () => apiClient.get('/newsletters/'),
-  get: (id: string) => apiClient.get(`/newsletters/${id}`),
-  create: (data: any) => apiClient.post('/newsletters/', data),
-  update: (id: string, data: any) => apiClient.put(`/newsletters/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/newsletters/${id}`),
-  send: (id: string) => apiClient.post(`/newsletters/${id}/send`),
+export const listsApi = {
+  list: () => apiClient.get('/lists/'),
+  get: (id: number) => apiClient.get(`/lists/${id}`),
+  create: (data: any) => apiClient.post('/lists/', data),
+  getSubscribers: (listId: number, params?: { search?: string; status?: string }) => 
+    apiClient.get(`/lists/${listId}/subscribers`, { params }),
+  addSubscriber: (listId: number, data: any) => 
+    apiClient.post(`/lists/${listId}/subscribers`, data),
+};
+
+export const subscriptionsApi = {
+  update: (id: number, data: any) => apiClient.put(`/subscriptions/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/subscriptions/${id}`),
+};
+
+export const importsApi = {
+  preview: (formData: FormData) => 
+    apiClient.post('/imports/preview', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  commit: (data: { list_id: number; entries: Array<{ name?: string; email: string }> }) => 
+    apiClient.post('/imports/commit', data),
 };
 
 export const subscriberApi = {
-  list: () => apiClient.get('/subscribers/'),
-  create: (data: any) => apiClient.post('/subscribers/', data),
-  importCsv: (formData: FormData) =>
-    apiClient.post('/subscribers/import', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  unsubscribe: (email: string, categoryIds: number[]) =>
-    apiClient.post('/subscribers/unsubscribe', { email, category_ids: categoryIds }),
+  listMaster: () => apiClient.get('/subscribers/'),
 };
 
-export const categoryApi = {
-  list: () => apiClient.get('/categories/'),
-  create: (data: any) => apiClient.post('/categories/', data),
-};
-
-export const aiApi = {
-  generateDraft: (prompt: string, categoryId: number, tone: string) =>
-    apiClient.post('/ai/generate-draft', { prompt, category_id: categoryId, tone }),
+export const auditLogsApi = {
+  list: () => apiClient.get('/audit-logs/'),
 };
 
 export const dashboardApi = {
-  getStatistics: () => apiClient.get('/statistics/dashboard'),
+  getStatistics: () => apiClient.get('/dashboard/stats'),
 };
