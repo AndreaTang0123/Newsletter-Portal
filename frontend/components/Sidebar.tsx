@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id || 
+          const isActive = currentTab === item.id ||
             (item.id === 'lists' && currentTab.startsWith('list-detail-'));
           return (
             <button
@@ -67,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
             A
           </div>
           <div>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Andrea Tang</p>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Maxwell Mitchell</p>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Administrator</p>
           </div>
         </div>

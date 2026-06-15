@@ -2,8 +2,8 @@ import React from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'PortalAI - Email Newsletter Portal',
-  description: 'AI-powered email newsletter administration dashboard.',
+  title: 'Subscriber ',
+
 };
 
 export default function RootLayout({
