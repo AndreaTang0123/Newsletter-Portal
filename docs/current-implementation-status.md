@@ -1,44 +1,111 @@
 # Current Implementation Status
 
 ## Overview
-The current implementation of the Newsletter Portal is a split frontend/backend architecture:
 
-- **Frontend:** Next.js application in `frontend/`
-- **Backend:** FastAPI REST service in `backend/app/`
-- **Database:** SQLite by default via SQLAlchemy
-- **Authentication:** mock JWT login flow with seeded admin user
-- **Hosting:** development-level instructions are documented, production hosting is not yet implemented
+The Newsletter Subscriber Portal is a split frontend/backend application focused on centralized distribution list and subscriber management.
+
+| Layer | Technology | Status |
+|-------|-----------|--------|
+| Frontend | Next.js 14 / React 18 / TypeScript | ✅ Implemented |
+| Backend | FastAPI / Python 3.10+ / SQLAlchemy | ✅ Implemented |
+| Database | SQLite (local) / Azure SQL (planned) | ✅ Local, 🔲 Azure |
+| Authentication | JWT mock login | ✅ Implemented |
+| Entra ID SSO | Microsoft Entra ID | 🔲 Planned |
+| Email dispatch | SMTP service | 🔲 Scaffolded |
+| AI draft generation | Gemini LLM | 🔲 Scaffolded |
 
 ## Completed Implementation
 
-### Frontend
-- Admin dashboard built in `frontend/app/page.tsx`
-- Navigation via `Sidebar` and `Navbar`
-- Subscriber management interface in `frontend/components/SubscribersList.tsx`
-- Newsletter history page in `frontend/components/NewsletterHistory.tsx`
-- AI draft workflow present in `frontend/components/AIDraftWizard.tsx`
-- Login interface with left product overview and right login card
-- Logout action available under `Settings`
+### Frontend Pages & Components
 
-### Backend
-- FastAPI API server in `backend/app/main.py`
-- API router structure for newsletters, subscribers, categories, AI, email, and auth
-- SQLAlchemy models in `backend/app/models.py`
-- Mock auth implementation in `backend/app/routers/auth.py`
-- JWT utilities and security in `backend/app/auth.py`
-- Database seeding of default admin user on startup
+| Feature | Component | Status |
+|---------|-----------|--------|
+| Login screen | `app/page.tsx` (unauthenticated state) | ✅ |
+| Admin dashboard with metrics | `app/page.tsx` (dashboard tab) | ✅ |
+| Navigation sidebar | `components/Sidebar.tsx` | ✅ |
+| Top navbar | `components/Navbar.tsx` | ✅ |
+| Distribution list card grid | `components/ListsView.tsx` | ✅ |
+| Per-list subscriber management | `components/ListDetailView.tsx` | ✅ |
+| Master subscriber directory | `components/MasterSubscribersView.tsx` | ✅ |
+| CSV bulk import workflow | `components/ImportView.tsx` | ✅ |
+| Audit log trail | `components/AuditLogsView.tsx` | ✅ |
+| Settings page (roles, DB info, sign-out) | `app/page.tsx` (settings tab) | ✅ |
+| Public unsubscribe page | `pages/unsubscribe.tsx` | ✅ |
+
+### Backend API Routers (Mounted)
+
+| Router | Prefix | Endpoints | Status |
+|--------|--------|-----------|--------|
+| Auth | `/api/v1/auth` | `POST /login` | ✅ |
+| Lists | `/api/v1/lists` | CRUD + subscriber management | ✅ |
+| Subscriptions | `/api/v1/subscriptions` | `PUT /{id}`, `DELETE /{id}` | ✅ |
+| Imports | `/api/v1/imports` | `POST /preview`, `POST /commit` | ✅ |
+| Subscribers | `/api/v1/subscribers` | `GET /` (master directory) | ✅ |
+| Audit Logs | `/api/v1/audit-logs` | `GET /` | ✅ |
+| Dashboard Stats | `/api/v1/dashboard` | `GET /stats` | ✅ |
 
 ### Authentication
-- `POST /api/v1/auth/login` supports mock login using seeded credentials
+
+- `POST /api/v1/auth/login` validates credentials against the `users` table
 - Default seeded admin user:
   - Email: `curator@company.com`
   - Password: `securepassword123`
-- JWT access tokens are returned on successful login
+  - Role: `admin`
+  - Full Name: Andrea Tang
+- JWT access tokens (HS256) are returned on successful login
 - Protected endpoints require `Authorization: Bearer <token>`
+- Admin-only endpoints (e.g., list creation) use `Depends(auth.require_admin)`
+
+### Database
+
+- SQLAlchemy ORM with 5 tables: `users`, `lists`, `subscribers`, `subscriptions`, `audit_logs`
+- Database seeding on startup: 1 admin user + 4 distribution lists
+- Unique constraint on `(list_id, subscriber_id)` prevents duplicate subscriptions
+- Audit logs use `SET NULL` foreign keys to preserve history when records are deleted
+
+### Key Workflows
+
+- **Add subscriber** → creates `Subscriber` if not exists → creates `Subscription` → writes `AuditLog`
+- **CSV import** → upload & parse → preview with validation → commit valid rows → writes `AuditLog`
+- **Edit subscriber** → updates `Subscription` and `Subscriber` fields → writes `AuditLog`
+- **Remove subscriber** → deletes `Subscription` → writes `AuditLog`
+- **CSV export** → generates CSV client-side from current subscriber list and triggers browser download
+
+## Scaffolded (Not Yet Active)
+
+### Frontend Components (not in sidebar navigation)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| AIDraftWizard | `components/AIDraftWizard.tsx` | AI-powered newsletter draft generation UI |
+| NewsletterEditor | `components/NewsletterEditor.tsx` | Rich text newsletter content editor |
+| NewsletterHistory | `components/NewsletterHistory.tsx` | Sent newsletter history with delivery analytics |
+
+### Backend Routers (not mounted in `main.py`)
+
+| Router | File | Purpose |
+|--------|------|---------|
+| Newsletters | `routers/newsletters.py` | Newsletter CRUD + send dispatch |
+| Categories | `routers/categories.py` | Category CRUD |
+| AI | `routers/ai.py` | Gemini LLM draft generation |
+| Email | `routers/email.py` | Campaign sending history |
+
+### Backend Services
+
+| Service | File | Purpose |
+|---------|------|---------|
+| AI Service | `services/ai_service.py` | Google Gemini API integration |
+| Email Service | `services/email_service.py` | SMTP send + tracking pixel injection |
 
 ## Known Gaps
-- Microsoft Entra ID login is not yet implemented; current login is mock only
-- No production-ready identity provider integration has been added
-- No explicit test suite exists in the current repository
-- Email delivery flow is stubbed and may require production service configuration
-- Current docs describe local `.venv` setup and should be reviewed for full Azure deployment
+
+| Area | Gap | Priority |
+|------|-----|----------|
+| Authentication | Microsoft Entra ID SSO is not implemented; login is mock-only | High |
+| Email delivery | SMTP service is scaffolded but not production-configured | Medium |
+| AI drafts | Gemini integration scaffolded but router not mounted | Medium |
+| Newsletter editor | Components exist but not accessible from sidebar | Medium |
+| Test suite | No automated unit or integration tests | Medium |
+| CORS | Backend allows all origins (`*`) — must be restricted for production | High |
+| Hosting | Only local development instructions exist; no CI/CD pipeline | Medium |
+| Database | Local SQLite only; Azure SQL migration not yet executed | High |
