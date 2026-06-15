@@ -39,7 +39,7 @@ export default function DashboardHome() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
-  
+
   const [statistics, setStatistics] = useState<DashboardStats>({
     total_lists: 0,
     total_subscribers: 0,
@@ -49,7 +49,7 @@ export default function DashboardHome() {
     last_updated: null,
     recent_changes: []
   });
-  
+
   const [loadingStats, setLoadingStats] = useState(false);
   const [statsError, setStatsError] = useState('');
 
@@ -179,15 +179,15 @@ export default function DashboardHome() {
 
       {/* Main Admin View Workspace */}
       <main className="content-area">
-        <Navbar 
+        <Navbar
           title={
-            currentTab.startsWith('list-detail-') ? 'List Detail' : 
-            currentTab === 'master-subscribers' ? 'Master Subscribers' :
-            currentTab === 'import' ? 'CSV Import' :
-            currentTab === 'audit-logs' ? 'Audit Logs' : 
-            currentTab
-          } 
-          onSettingsClick={() => setCurrentTab('settings')} 
+            currentTab.startsWith('list-detail-') ? 'List Detail' :
+              currentTab === 'master-subscribers' ? 'Master Subscribers' :
+                currentTab === 'import' ? 'CSV Import' :
+                  currentTab === 'audit-logs' ? 'Audit Logs' :
+                    currentTab
+          }
+          onSettingsClick={() => setCurrentTab('settings')}
         />
 
         {currentTab === 'dashboard' && (
@@ -252,8 +252,8 @@ export default function DashboardHome() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.85rem', color: 'var(--text-secondary)', alignItems: 'center', gap: '8px' }}>
               <Calendar size={14} />
               <span>Database Last Updated: {statistics.last_updated ? new Date(statistics.last_updated).toLocaleString() : 'Never'}</span>
-              <button 
-                onClick={fetchStatistics} 
+              <button
+                onClick={fetchStatistics}
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: 'var(--color-primary)', marginLeft: '8px' }}
                 title="Refresh stats"
               >
@@ -272,7 +272,7 @@ export default function DashboardHome() {
                   View Full Audit Trail
                 </button>
               </div>
-              
+
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                   <thead>
@@ -316,12 +316,12 @@ export default function DashboardHome() {
         )}
 
         {currentTab.startsWith('list-detail-') && selectedListId !== null && (
-          <ListDetailView 
-            listId={selectedListId} 
+          <ListDetailView
+            listId={selectedListId}
             onBack={() => {
               setSelectedListId(null);
               setCurrentTab('lists');
-            }} 
+            }}
           />
         )}
 
@@ -351,14 +351,14 @@ export default function DashboardHome() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                   <div>
-                    <h5 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Administrators (Andrea Tang)</h5>
+                    <h5 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Administrators</h5>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Full subscriber write privileges, list creations, and manual override capabilities.</p>
                   </div>
                   <span style={{ fontSize: '0.8rem', background: 'rgba(94, 187, 148, 0.12)', border: '1px solid var(--color-primary)', color: 'var(--color-primary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>Admin</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                   <div>
-                    <h5 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Curators (Alex Sherman, Warren)</h5>
+                    <h5 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Curators</h5>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>View metadata, manage list memberships, execute CSV imports, and download reports.</p>
                   </div>
                   <span style={{ fontSize: '0.8rem', background: 'rgba(0, 40, 69, 0.08)', border: '1px solid var(--color-secondary)', color: 'var(--color-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>Curator</span>
@@ -389,7 +389,7 @@ export default function DashboardHome() {
                 </div>
               </div>
             </div>
-            
+
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 className="btn-secondary"
