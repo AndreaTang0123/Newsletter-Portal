@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { listsApi, subscriptionsApi } from '../lib/api';
-import { ArrowLeft, UserPlus, Search, Edit2, Trash2, Download, RefreshCw, X, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, UserPlus, Search, Edit2, Trash2, Download, RefreshCw, X, ShieldAlert, Check } from 'lucide-react';
 
 interface SubscriberRow {
   id: number; // subscriber_id
@@ -55,6 +55,10 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
   const [formRoleTitle, setFormRoleTitle] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [formError, setFormError] = useState('');
+
+  // Owner editing state
+  const [editingOwner, setEditingOwner] = useState(false);
+  const [ownerInput, setOwnerInput] = useState('');
 
   const fetchListDetails = useCallback(async () => {
     try {
@@ -211,6 +215,17 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
     document.body.removeChild(link);
   };
 
+  const handleUpdateOwner = async () => {
+    if (!ownerInput.trim() || !listDetails) return;
+    try {
+      await listsApi.update(listId, { owner: ownerInput.trim() });
+      setEditingOwner(false);
+      fetchListDetails();
+    } catch (err) {
+      console.error('Failed to update owner:', err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header Bar */}
@@ -218,11 +233,67 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
         <button className="btn-secondary" onClick={onBack} style={{ padding: '8px 12px' }}>
           <ArrowLeft size={16} />
         </button>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: '1.75rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
             {listDetails?.name || 'Loading List...'}
-            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', padding: '2px 8px', borderRadius: '12px' }}>
-              Owner: {listDetails?.owner || '...'}
+            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', padding: '2px 8px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              Owner:
+              {editingOwner ? (
+                <>
+                  <input
+                    type="text"
+                    value={ownerInput}
+                    onChange={(e) => setOwnerInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleUpdateOwner();
+                      } else if (e.key === 'Escape') {
+                        setEditingOwner(false);
+                      }
+                    }}
+                    autoFocus
+                    style={{
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--color-primary)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.85rem',
+                      fontFamily: 'inherit',
+                      width: '140px',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={handleUpdateOwner}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '2px', color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}
+                    title="Save owner"
+                  >
+                    <Check size={14} />
+                  </button>
+                  <button
+                    onClick={() => setEditingOwner(false)}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '2px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}
+                    title="Cancel"
+                  >
+                    <X size={14} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  {listDetails?.owner || '...'}
+                  <button
+                    onClick={() => {
+                      setOwnerInput(listDetails?.owner || '');
+                      setEditingOwner(true);
+                    }}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '2px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}
+                    title="Edit owner"
+                  >
+                    <Edit2 size={12} />
+                  </button>
+                </>
+              )}
             </span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>

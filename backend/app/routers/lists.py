@@ -64,3 +64,29 @@ def add_subscriber_to_list(
         return crud.add_subscriber_to_list(db, list_id, subscriber, actor=current_user.email)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/{list_id}", response_model=schemas.ListWithStats)
+def update_list(
+    list_id: int,
+    updates: schemas.ListUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user)
+):
+    lst = crud.get_list_by_id(db, list_id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="List not found")
+    crud.update_list(db, lst, updates)
+    stats = crud.get_list_stats(db, list_id)
+    return {
+        "id": lst.id,
+        "name": lst.name,
+        "description": lst.description,
+        "owner": lst.owner,
+        "category": lst.category,
+        "created_at": lst.created_at,
+        "updated_at": lst.updated_at,
+        "subscriber_count": stats["Total"],
+        "active_count": stats["Active"],
+        "unsubscribed_count": stats["Unsubscribed"],
+        "bounced_count": stats["Bounced"]
+    }

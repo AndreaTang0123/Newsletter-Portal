@@ -46,6 +46,19 @@ def create_list(db: Session, list_in: schemas.ListCreate) -> models.List:
     db.refresh(db_list)
     return db_list
 
+def update_list(db: Session, db_list: models.List, updates: schemas.ListUpdate) -> models.List:
+    if updates.name is not None:
+        db_list.name = updates.name
+    if updates.description is not None:
+        db_list.description = updates.description
+    if updates.owner is not None:
+        db_list.owner = updates.owner
+    if updates.category is not None:
+        db_list.category = updates.category
+    db.commit()
+    db.refresh(db_list)
+    return db_list
+
 def get_list_stats(db: Session, list_id: int) -> dict:
     results = db.query(
         models.Subscription.status,
