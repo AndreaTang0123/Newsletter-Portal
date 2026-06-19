@@ -67,6 +67,8 @@ const selfServiceClient = axios.create({
 });
 
 export const selfServiceApi = {
+  lookupByEmail: (email: string) =>
+    selfServiceClient.post('/self-service/lookup', { email }),
   getSubscriber: (token: string) =>
     selfServiceClient.get('/self-service/subscriber', { params: { token } }),
   unsubscribeAll: (token: string) =>

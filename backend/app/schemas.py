@@ -141,6 +141,7 @@ class SubscriberWithSubscription(BaseModel):
     email: EmailStr
     department: Optional[str] = None
     role_title: Optional[str] = None
+    subscription_token: Optional[str] = None
     status: str
     source: str
     opt_in_date: datetime
@@ -222,6 +223,9 @@ class SelfServiceSubscriberResponse(BaseModel):
     email: str
     name: Optional[str] = None
     lists: TypingList[SelfServiceListItem]
+
+class SelfServiceLookupResponse(SelfServiceSubscriberResponse):
+    token: str
 
 class PreferenceUpdate(BaseModel):
     list_id: int

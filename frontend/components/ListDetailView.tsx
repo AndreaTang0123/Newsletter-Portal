@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { listsApi, subscriptionsApi } from '../lib/api';
-import { ArrowLeft, UserPlus, Search, Edit2, Trash2, Download, RefreshCw, X, ShieldAlert, Check } from 'lucide-react';
+import { ArrowLeft, UserPlus, Search, Edit2, Trash2, Download, X, Check, Link } from 'lucide-react';
 
 interface SubscriberRow {
   id: number; // subscriber_id
@@ -9,6 +9,7 @@ interface SubscriberRow {
   email: string;
   department: string | null;
   role_title: string | null;
+  subscription_token: string | null;
   status: string;
   source: string;
   opt_in_date: string;
@@ -59,6 +60,9 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
   // Owner editing state
   const [editingOwner, setEditingOwner] = useState(false);
   const [ownerInput, setOwnerInput] = useState('');
+
+  // Copy-links feedback
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const fetchListDetails = useCallback(async () => {
     try {
@@ -186,7 +190,8 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
       alert('No subscribers to export.');
       return;
     }
-    const headers = ['Name', 'Email', 'Status', 'Source', 'Date Added', 'Last Updated', 'Notes', 'Department', 'Role Title'];
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
+    const headers = ['Name', 'Email', 'Status', 'Source', 'Date Added', 'Last Updated', 'Notes', 'Department', 'Role Title', 'Unsubscribe URL', 'Manage Preferences URL'];
     const rows = subscribers.map(sub => [
       sub.name || '',
       sub.email,
@@ -196,7 +201,9 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
       new Date(sub.updated_at).toISOString(),
       sub.notes || '',
       sub.department || '',
-      sub.role_title || ''
+      sub.role_title || '',
+      sub.subscription_token ? `${base}/unsubscribe?token=${sub.subscription_token}` : '',
+      sub.subscription_token ? `${base}/manage-preferences?token=${sub.subscription_token}` : '',
     ]);
 
     const csvContent = [
@@ -213,6 +220,16 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleCopyFooter = (sub: SubscriberRow) => {
+    if (!sub.subscription_token) return;
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
+    const html = `<a href="${base}/unsubscribe?token=${sub.subscription_token}">Unsubscribe</a> | <a href="${base}/manage-preferences?token=${sub.subscription_token}">Manage Preferences</a>`;
+    navigator.clipboard.writeText(html).then(() => {
+      setCopiedId(sub.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
   };
 
   const handleUpdateOwner = async () => {
@@ -441,6 +458,15 @@ export const ListDetailView: React.FC<ListDetailViewProps> = ({ listId, onBack }
                     </td>
                     <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '8px' }}>
+                        {sub.subscription_token && (
+                          <button
+                            onClick={() => handleCopyFooter(sub)}
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px', color: copiedId === sub.id ? 'var(--color-success)' : 'var(--color-primary)', transition: 'color 0.2s' }}
+                            title="Copy footer links HTML"
+                          >
+                            {copiedId === sub.id ? <Check size={16} /> : <Link size={16} />}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleOpenEditModal(sub)}
                           style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px', color: 'var(--text-secondary)', transition: 'color 0.2s' }}

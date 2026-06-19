@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemas, crud
@@ -11,6 +12,19 @@ def _get_subscriber_or_404(token: str, db: Session):
     if not subscriber:
         raise HTTPException(status_code=404, detail="Invalid or expired subscription token.")
     return subscriber
+
+
+class EmailLookupRequest(BaseModel):
+    email: EmailStr
+
+
+@router.post("/lookup", response_model=schemas.SelfServiceLookupResponse)
+def lookup_by_email(body: EmailLookupRequest, db: Session = Depends(get_db)):
+    subscriber = crud.get_subscriber_by_email(db, body.email)
+    if not subscriber or not subscriber.subscription_token:
+        raise HTTPException(status_code=404, detail="No subscription found for this email address.")
+    prefs = crud.get_subscriber_preferences(db, subscriber)
+    return {**prefs, "token": subscriber.subscription_token}
 
 
 @router.get("/subscriber", response_model=schemas.SelfServiceSubscriberResponse)

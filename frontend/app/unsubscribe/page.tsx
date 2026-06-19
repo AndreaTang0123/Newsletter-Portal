@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { selfServiceApi } from '../../lib/api';
-import { Mail, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Mail, CheckCircle, AlertCircle, Loader, ArrowRight } from 'lucide-react';
 
 interface SubscriberInfo {
   subscriber_id: number;
@@ -11,24 +11,29 @@ interface SubscriberInfo {
   lists: Array<{ list_id: number; list_name: string; is_subscribed: boolean }>;
 }
 
-type PageState = 'loading' | 'ready' | 'confirming' | 'success' | 'error' | 'invalid';
+type PageState = 'email-form' | 'loading' | 'ready' | 'confirming' | 'success' | 'error' | 'invalid';
 
 export default function UnsubscribePage() {
   const [token, setToken] = useState<string | null>(null);
   const [subscriber, setSubscriber] = useState<SubscriberInfo | null>(null);
   const [pageState, setPageState] = useState<PageState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [lookupError, setLookupError] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get('token');
-    setToken(t);
-
-    if (!t) {
-      setPageState('invalid');
-      return;
+    if (t) {
+      setToken(t);
+      loadByToken(t);
+    } else {
+      setPageState('email-form');
     }
+  }, []);
 
+  const loadByToken = (t: string) => {
+    setPageState('loading');
     selfServiceApi.getSubscriber(t)
       .then(res => {
         setSubscriber(res.data);
@@ -36,7 +41,25 @@ export default function UnsubscribePage() {
         setPageState(activeCount === 0 ? 'success' : 'ready');
       })
       .catch(() => setPageState('invalid'));
-  }, []);
+  };
+
+  const handleEmailLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLookupError('');
+    setPageState('loading');
+    try {
+      const res = await selfServiceApi.lookupByEmail(emailInput);
+      setToken(res.data.token);
+      setSubscriber(res.data);
+      const activeCount = res.data.lists.filter((l: any) => l.is_subscribed).length;
+      setPageState(activeCount === 0 ? 'success' : 'ready');
+    } catch (err: any) {
+      setPageState('email-form');
+      setLookupError(err.response?.status === 404
+        ? 'No subscription found for this email address.'
+        : 'Something went wrong. Please try again.');
+    }
+  };
 
   const handleUnsubscribe = async () => {
     if (!token) return;
@@ -77,6 +100,40 @@ export default function UnsubscribePage() {
           </p>
         </div>
 
+        {/* Email lookup form (no token in URL) */}
+        {pageState === 'email-form' && (
+          <form onSubmit={handleEmailLookup} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Enter your email address to manage your newsletter subscriptions.
+            </p>
+            <input
+              type="email"
+              required
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              placeholder="your.name@company.com"
+              style={{
+                padding: '12px 16px', borderRadius: '10px',
+                border: '1px solid var(--border-glass)',
+                background: 'var(--bg-secondary)', color: 'var(--text-primary)',
+                fontSize: '0.95rem', outline: 'none',
+              }}
+            />
+            {lookupError && (
+              <p style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{lookupError}</p>
+            )}
+            <button type="submit" className="btn-primary" style={{ justifyContent: 'center' }}>
+              Continue <ArrowRight size={16} />
+            </button>
+            <a
+              href="/manage-preferences"
+              style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}
+            >
+              Manage individual preferences instead
+            </a>
+          </form>
+        )}
+
         {/* Loading */}
         {pageState === 'loading' && (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '16px 0' }}>
@@ -90,9 +147,12 @@ export default function UnsubscribePage() {
           <div style={{ textAlign: 'center' }}>
             <AlertCircle size={36} color="var(--color-error)" style={{ marginBottom: '12px' }} />
             <h2 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Invalid Link</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              This unsubscribe link is invalid or has expired. Please contact your newsletter administrator.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              This unsubscribe link is invalid or has expired.
             </p>
+            <button className="btn-secondary" onClick={() => setPageState('email-form')} style={{ justifyContent: 'center' }}>
+              Try with email instead
+            </button>
           </div>
         )}
 
@@ -121,20 +181,16 @@ export default function UnsubscribePage() {
 
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '20px' }}>
               Clicking below will unsubscribe you from all of the lists above. You can re-subscribe anytime via the{' '}
-              <a href={`/manage-preferences?token=${token}`} style={{ color: 'var(--color-primary)' }}>
+              <a href={token ? `/manage-preferences?token=${token}` : '/manage-preferences'} style={{ color: 'var(--color-primary)' }}>
                 manage preferences
               </a>{' '}page.
             </p>
 
-            <button
-              className="btn-primary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={handleUnsubscribe}
-            >
+            <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={handleUnsubscribe}>
               Unsubscribe from all
             </button>
             <a
-              href={`/manage-preferences?token=${token}`}
+              href={token ? `/manage-preferences?token=${token}` : '/manage-preferences'}
               style={{ display: 'block', textAlign: 'center', marginTop: '12px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}
             >
               Manage individual preferences instead
@@ -158,7 +214,11 @@ export default function UnsubscribePage() {
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
               You have been removed from all newsletter distribution lists. If this was a mistake, you can re-subscribe below.
             </p>
-            <a href={`/manage-preferences?token=${token}`} className="btn-secondary" style={{ justifyContent: 'center' }}>
+            <a
+              href={token ? `/manage-preferences?token=${token}` : '/manage-preferences'}
+              className="btn-secondary"
+              style={{ justifyContent: 'center' }}
+            >
               Re-subscribe or manage preferences
             </a>
           </div>

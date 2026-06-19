@@ -263,6 +263,7 @@ def get_subscribers_by_list(db: Session, list_id: int, search: Optional[str] = N
             "email": sub.email,
             "department": sub.department,
             "role_title": sub.role_title,
+            "subscription_token": sub.subscription_token,
             "status": s.status,
             "source": s.source,
             "opt_in_date": s.opt_in_date,

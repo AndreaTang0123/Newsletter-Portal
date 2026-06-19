@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { selfServiceApi } from '../../lib/api';
-import { Settings, CheckCircle, AlertCircle, Loader, Save } from 'lucide-react';
+import { Settings, CheckCircle, AlertCircle, Loader, Save, ArrowRight } from 'lucide-react';
 
 interface ListItem {
   list_id: number;
@@ -17,7 +17,7 @@ interface SubscriberInfo {
   lists: ListItem[];
 }
 
-type PageState = 'loading' | 'ready' | 'saving' | 'success' | 'error' | 'invalid';
+type PageState = 'email-form' | 'loading' | 'ready' | 'saving' | 'success' | 'error' | 'invalid';
 
 export default function ManagePreferencesPage() {
   const [token, setToken] = useState<string | null>(null);
@@ -26,28 +26,45 @@ export default function ManagePreferencesPage() {
   const [pageState, setPageState] = useState<PageState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [isDirty, setIsDirty] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [lookupError, setLookupError] = useState('');
+
+  const applySubscriberData = (data: SubscriberInfo, resolvedToken: string) => {
+    setSubscriber(data);
+    setToken(resolvedToken);
+    const prefs: Record<number, boolean> = {};
+    data.lists.forEach(l => { prefs[l.list_id] = l.is_subscribed; });
+    setPreferences(prefs);
+    setPageState('ready');
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get('token');
-    setToken(t);
-
-    if (!t) {
-      setPageState('invalid');
-      return;
+    if (t) {
+      setToken(t);
+      selfServiceApi.getSubscriber(t)
+        .then(res => applySubscriberData(res.data, t))
+        .catch(() => setPageState('invalid'));
+    } else {
+      setPageState('email-form');
     }
-
-    selfServiceApi.getSubscriber(t)
-      .then(res => {
-        const data: SubscriberInfo = res.data;
-        setSubscriber(data);
-        const prefs: Record<number, boolean> = {};
-        data.lists.forEach(l => { prefs[l.list_id] = l.is_subscribed; });
-        setPreferences(prefs);
-        setPageState('ready');
-      })
-      .catch(() => setPageState('invalid'));
   }, []);
+
+  const handleEmailLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLookupError('');
+    setPageState('loading');
+    try {
+      const res = await selfServiceApi.lookupByEmail(emailInput);
+      applySubscriberData(res.data, res.data.token);
+    } catch (err: any) {
+      setPageState('email-form');
+      setLookupError(err.response?.status === 404
+        ? 'No subscription found for this email address.'
+        : 'Something went wrong. Please try again.');
+    }
+  };
 
   const toggleList = (listId: number) => {
     setPreferences(prev => ({ ...prev, [listId]: !prev[listId] }));
@@ -98,6 +115,40 @@ export default function ManagePreferencesPage() {
           </p>
         </div>
 
+        {/* Email lookup form */}
+        {pageState === 'email-form' && (
+          <form onSubmit={handleEmailLookup} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Enter your email address to manage your newsletter preferences.
+            </p>
+            <input
+              type="email"
+              required
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              placeholder="your.name@company.com"
+              style={{
+                padding: '12px 16px', borderRadius: '10px',
+                border: '1px solid var(--border-glass)',
+                background: 'var(--bg-secondary)', color: 'var(--text-primary)',
+                fontSize: '0.95rem', outline: 'none',
+              }}
+            />
+            {lookupError && (
+              <p style={{ color: 'var(--color-error)', fontSize: '0.85rem' }}>{lookupError}</p>
+            )}
+            <button type="submit" className="btn-primary" style={{ justifyContent: 'center' }}>
+              Continue <ArrowRight size={16} />
+            </button>
+            <a
+              href="/unsubscribe"
+              style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}
+            >
+              Unsubscribe from all newsletters instead
+            </a>
+          </form>
+        )}
+
         {/* Loading */}
         {pageState === 'loading' && (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '16px 0' }}>
@@ -111,9 +162,12 @@ export default function ManagePreferencesPage() {
           <div style={{ textAlign: 'center' }}>
             <AlertCircle size={36} color="var(--color-error)" style={{ marginBottom: '12px' }} />
             <h2 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Invalid Link</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              This preferences link is invalid or has expired. Please contact your newsletter administrator.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              This preferences link is invalid or has expired.
             </p>
+            <button className="btn-secondary" onClick={() => setPageState('email-form')} style={{ justifyContent: 'center' }}>
+              Try with email instead
+            </button>
           </div>
         )}
 
