@@ -60,3 +60,17 @@ export const auditLogsApi = {
 export const dashboardApi = {
   getStatistics: () => apiClient.get('/dashboard/stats'),
 };
+
+const selfServiceClient = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+export const selfServiceApi = {
+  getSubscriber: (token: string) =>
+    selfServiceClient.get('/self-service/subscriber', { params: { token } }),
+  unsubscribeAll: (token: string) =>
+    selfServiceClient.post('/self-service/unsubscribe', null, { params: { token } }),
+  updatePreferences: (token: string, subscriptions: Array<{ list_id: number; subscribed: boolean }>) =>
+    selfServiceClient.put('/self-service/preferences', { subscriptions }, { params: { token } }),
+};

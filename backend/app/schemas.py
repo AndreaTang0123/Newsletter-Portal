@@ -85,6 +85,7 @@ class SubscriberUpdate(BaseModel):
 
 class Subscriber(SubscriberBase):
     id: int
+    subscription_token: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -208,6 +209,26 @@ class AuditLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Self-Service Schemas
+class SelfServiceListItem(BaseModel):
+    list_id: int
+    list_name: str
+    is_subscribed: bool
+
+class SelfServiceSubscriberResponse(BaseModel):
+    subscriber_id: int
+    email: str
+    name: Optional[str] = None
+    lists: TypingList[SelfServiceListItem]
+
+class PreferenceUpdate(BaseModel):
+    list_id: int
+    subscribed: bool
+
+class PreferencesUpdateRequest(BaseModel):
+    subscriptions: TypingList[PreferenceUpdate]
 
 
 # Statistics Schemas

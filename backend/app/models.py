@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -38,6 +39,7 @@ class Subscriber(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     department = Column(String(255), nullable=True)
     role_title = Column(String(255), nullable=True)
+    subscription_token = Column(String(36), unique=True, index=True, nullable=True, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import Optional, List
@@ -108,12 +109,16 @@ def create_subscriber(db: Session, sub_in: schemas.SubscriberCreate) -> models.S
         email=sub_in.email,
         name=sub_in.name,
         department=sub_in.department,
-        role_title=sub_in.role_title
+        role_title=sub_in.role_title,
+        subscription_token=str(uuid.uuid4())
     )
     db.add(db_sub)
     db.commit()
     db.refresh(db_sub)
     return db_sub
+
+def get_subscriber_by_token(db: Session, token: str) -> Optional[models.Subscriber]:
+    return db.query(models.Subscriber).filter(models.Subscriber.subscription_token == token).first()
 
 def get_subscribers_master(db: Session) -> List[dict]:
     subscribers = db.query(models.Subscriber).all()
@@ -147,6 +152,82 @@ def get_subscribers_master(db: Session) -> List[dict]:
     # Sort by updated_at descending
     out.sort(key=lambda x: x["updated_at"], reverse=True)
     return out
+
+
+# Self-Service CRUD
+def get_subscriber_preferences(db: Session, subscriber: models.Subscriber) -> dict:
+    all_lists = db.query(models.List).all()
+    subscriptions = {s.list_id: s for s in subscriber.subscriptions}
+    lists = []
+    for lst in all_lists:
+        sub = subscriptions.get(lst.id)
+        lists.append({
+            "list_id": lst.id,
+            "list_name": lst.name,
+            "is_subscribed": sub is not None and sub.status == "Active"
+        })
+    return {
+        "subscriber_id": subscriber.id,
+        "email": subscriber.email,
+        "name": subscriber.name,
+        "lists": lists
+    }
+
+def unsubscribe_all(db: Session, subscriber: models.Subscriber) -> None:
+    changed = False
+    for sub in subscriber.subscriptions:
+        if sub.status == "Active":
+            sub.status = "Unsubscribed"
+            sub.unsubscribed_at = func.now()
+            sub.source = "Self-Service"
+            changed = True
+    if changed:
+        db.commit()
+        create_audit_log(
+            db,
+            actor=subscriber.email,
+            action="Self-service unsubscribe",
+            subscriber_id=subscriber.id,
+            details="Subscriber unsubscribed from all lists via email link."
+        )
+
+def update_subscriber_preferences(db: Session, subscriber: models.Subscriber, updates: schemas.PreferencesUpdateRequest) -> None:
+    existing = {s.list_id: s for s in subscriber.subscriptions}
+    details_parts = []
+
+    for pref in updates.subscriptions:
+        sub = existing.get(pref.list_id)
+        if pref.subscribed:
+            if sub is None:
+                new_sub = models.Subscription(
+                    list_id=pref.list_id,
+                    subscriber_id=subscriber.id,
+                    status="Active",
+                    source="Self-Service"
+                )
+                db.add(new_sub)
+                details_parts.append(f"Subscribed to list {pref.list_id}")
+            elif sub.status != "Active":
+                sub.status = "Active"
+                sub.unsubscribed_at = None
+                sub.source = "Self-Service"
+                details_parts.append(f"Resubscribed to list {pref.list_id}")
+        else:
+            if sub is not None and sub.status == "Active":
+                sub.status = "Unsubscribed"
+                sub.unsubscribed_at = func.now()
+                sub.source = "Self-Service"
+                details_parts.append(f"Unsubscribed from list {pref.list_id}")
+
+    if details_parts:
+        db.commit()
+        create_audit_log(
+            db,
+            actor=subscriber.email,
+            action="Self-service preference update",
+            subscriber_id=subscriber.id,
+            details="; ".join(details_parts)
+        )
 
 
 # Subscription CRUD
@@ -202,7 +283,8 @@ def add_subscriber_to_list(db: Session, list_id: int, sub_data: schemas.Subscrip
             email=sub_data.email,
             name=sub_data.name,
             department=sub_data.department,
-            role_title=sub_data.role_title
+            role_title=sub_data.role_title,
+            subscription_token=str(uuid.uuid4())
         )
         db.add(subscriber)
         db.flush()

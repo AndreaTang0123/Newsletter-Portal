@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .init_db import seed_database
-from .routers import auth, lists, subscriptions, imports, subscribers, audit_logs, statistics
+from .routers import auth, lists, subscriptions, imports, subscribers, audit_logs, statistics, self_service
 
 # Initialize database schemas and seed default data
 seed_database()
@@ -33,3 +33,4 @@ def read_root():
 app.include_router(subscribers.router, prefix="/api/v1")
 app.include_router(audit_logs.router, prefix="/api/v1")
 app.include_router(statistics.router, prefix="/api/v1")
+app.include_router(self_service.router, prefix="/api/v1")
