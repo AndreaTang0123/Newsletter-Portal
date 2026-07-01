@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { listsApi } from '../lib/api';
-import { RefreshCw, Users, Mail, User, ShieldAlert, Calendar } from 'lucide-react';
+import { RefreshCw, Users, Mail, User, ShieldAlert, Calendar, Plus, X } from 'lucide-react';
 
 interface ListStats {
   id: number;
@@ -20,10 +20,16 @@ interface ListsViewProps {
   onListSelect: (listId: number) => void;
 }
 
+const CATEGORIES = ['Weekly', 'HAE', 'CMD', 'NS'];
+
 export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
   const [lists, setLists] = useState<ListStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [form, setForm] = useState({ name: '', description: '', owner: '', category: '' });
 
   const fetchLists = async () => {
     setLoading(true);
@@ -43,8 +49,103 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
     fetchLists();
   }, []);
 
+  const openModal = () => {
+    setForm({ name: '', description: '', owner: '', category: '' });
+    setCreateError('');
+    setShowModal(true);
+  };
+
+  const handleCreate = async () => {
+    if (!form.name.trim()) {
+      setCreateError('List name is required.');
+      return;
+    }
+    setCreating(true);
+    setCreateError('');
+    try {
+      await listsApi.create(form);
+      setShowModal(false);
+      fetchLists();
+    } catch (err: any) {
+      setCreateError(err?.response?.data?.detail || 'Failed to create list.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '480px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1.25rem' }}>New Distribution List</h3>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>List Name *</label>
+                <input
+                  className="input-field"
+                  placeholder="e.g. Weekly CI Newsletter"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Description</label>
+                <input
+                  className="input-field"
+                  placeholder="Optional description"
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Owner</label>
+                <input
+                  className="input-field"
+                  placeholder="e.g. CI Team"
+                  value={form.owner}
+                  onChange={e => setForm(f => ({ ...f, owner: e.target.value }))}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Category</label>
+                <select
+                  className="input-field"
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Select category</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {createError && (
+              <div style={{ padding: '10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: 'var(--color-error)', fontSize: '0.85rem' }}>
+                {createError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleCreate} disabled={creating}>
+                {creating ? 'Creating...' : 'Create List'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '1.75rem', marginBottom: '4px' }}>Distribution Lists</h2>
@@ -52,10 +153,16 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
             Centralized distribution channels for Weekly CI Newsletters and Curated Alerts.
           </p>
         </div>
-        <button className="btn-secondary" onClick={fetchLists} disabled={loading} style={{ gap: '8px' }}>
-          <RefreshCw size={16} className={loading ? 'spin-anim' : ''} />
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="btn-secondary" onClick={fetchLists} disabled={loading} style={{ gap: '8px' }}>
+            <RefreshCw size={16} className={loading ? 'spin-anim' : ''} />
+            Refresh
+          </button>
+          <button className="btn-primary" onClick={openModal} style={{ gap: '8px' }}>
+            <Plus size={16} />
+            Add New List
+          </button>
+        </div>
       </div>
 
       {error && (
