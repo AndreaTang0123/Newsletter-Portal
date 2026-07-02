@@ -29,6 +29,7 @@ export const listsApi = {
   get: (id: number) => apiClient.get(`/lists/${id}`),
   create: (data: any) => apiClient.post('/lists/', data),
   update: (id: number, data: any) => apiClient.put(`/lists/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/lists/${id}`),
   getSubscribers: (listId: number, params?: { search?: string; status?: string }) => 
     apiClient.get(`/lists/${listId}/subscribers`, { params }),
   addSubscriber: (listId: number, data: any) => 

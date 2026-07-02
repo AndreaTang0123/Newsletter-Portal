@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { listsApi } from '../lib/api';
-import { RefreshCw, Users, Mail, User, ShieldAlert, Calendar, Plus, X } from 'lucide-react';
+import { RefreshCw, User, Calendar, Plus, X, Trash2 } from 'lucide-react';
 
 interface ListStats {
   id: number;
   name: string;
   description: string;
   owner: string;
-  category: string;
   created_at: string;
   updated_at: string;
   subscriber_count: number;
@@ -20,8 +19,6 @@ interface ListsViewProps {
   onListSelect: (listId: number) => void;
 }
 
-const CATEGORIES = ['Weekly', 'HAE', 'CMD', 'NS'];
-
 export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
   const [lists, setLists] = useState<ListStats[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,7 +26,9 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
-  const [form, setForm] = useState({ name: '', description: '', owner: '', category: '' });
+  const [form, setForm] = useState({ name: '', description: '', owner: '' });
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const fetchLists = async () => {
     setLoading(true);
@@ -50,7 +49,7 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
   }, []);
 
   const openModal = () => {
-    setForm({ name: '', description: '', owner: '', category: '' });
+    setForm({ name: '', description: '', owner: '' });
     setCreateError('');
     setShowModal(true);
   };
@@ -70,6 +69,19 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
       setCreateError(err?.response?.data?.detail || 'Failed to create list.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    setDeletingId(id);
+    try {
+      await listsApi.delete(id);
+      setConfirmDeleteId(null);
+      fetchLists();
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to delete list.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -116,18 +128,6 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
                   style={{ width: '100%' }}
                 />
               </div>
-              <div>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Category</label>
-                <select
-                  className="input-field"
-                  value={form.category}
-                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  style={{ width: '100%' }}
-                >
-                  <option value="">Select category</option>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
             </div>
 
             {createError && (
@@ -140,6 +140,27 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
               <button className="btn-primary" onClick={handleCreate} disabled={creating}>
                 {creating ? 'Creating...' : 'Create List'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDeleteId !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ fontSize: '1.1rem' }}>Delete List</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              This will permanently delete the list and all its subscriber associations. This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button className="btn-secondary" onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+              <button
+                onClick={() => handleDelete(confirmDeleteId)}
+                disabled={deletingId === confirmDeleteId}
+                style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ef4444', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+              >
+                {deletingId === confirmDeleteId ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
@@ -181,21 +202,17 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
             <div key={lst.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <span style={{
-                    fontSize: '0.75rem',
-                    background: 'rgba(94, 187, 148, 0.12)',
-                    border: '1px solid rgba(94, 187, 148, 0.3)',
-                    color: 'var(--color-secondary)',
-                    padding: '3px 8px',
-                    borderRadius: '12px',
-                    fontWeight: 600
-                  }}>
-                    {lst.category}
-                  </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     <User size={14} />
-                    <span>{lst.owner}</span>
+                    <span>{lst.owner || '—'}</span>
                   </div>
+                  <button
+                    onClick={() => setConfirmDeleteId(lst.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
+                    title="Delete list"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
 
                 <h3 style={{ fontSize: '1.35rem', color: 'var(--text-primary)', marginBottom: '6px' }}>{lst.name}</h3>
@@ -204,7 +221,6 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
                 </p>
               </div>
 
-              {/* Stats Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
                 <div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500 }}>SUBSCRIBERS</p>
@@ -229,8 +245,8 @@ export const ListsView: React.FC<ListsViewProps> = ({ onListSelect }) => {
                   <Calendar size={12} />
                   Updated {new Date(lst.updated_at).toLocaleDateString()}
                 </span>
-                <button 
-                  className="btn-primary" 
+                <button
+                  className="btn-primary"
                   onClick={() => onListSelect(lst.id)}
                   style={{ padding: '8px 14px', fontSize: '0.85rem' }}
                 >
