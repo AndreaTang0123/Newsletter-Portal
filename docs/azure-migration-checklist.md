@@ -2,31 +2,40 @@
 
 This checklist covers the steps required to migrate the Newsletter Subscriber Portal from local development to an Azure-hosted production environment.
 
+**Target environment** (resource group `rg-newsletter`, East US 2, subscription `BioCryst-CDW subscription`):
+- `Biocryst-Newsletter` — App Service (backend, FastAPI)
+- `biocryst-newsletter-server` — Azure Database for PostgreSQL Flexible Server
+- `biocryst-newsletter-static` — Static Web App (frontend, Next.js static export)
+- `Biocryst-NewsletterVnet` — Virtual network (Postgres uses private access via `privatelink.postgres.database.azure.com`)
+- `ASP-rgnewsletter-9f30` — App Service plan
+
 ## Preparation
 
 - [ ] Verify all sensitive configuration values are externalized to environment variables (no hardcoded secrets)
-- [ ] Confirm `npm run build` completes successfully for the frontend
+- [ ] Confirm `npm run build` completes successfully for the frontend (with `output: 'export'` in `next.config.js` for static hosting on the Static Web App)
 - [ ] Confirm the backend starts cleanly with `python -m uvicorn app.main:app` (no `--reload`)
 - [ ] Review and remove any console-only debug settings or hardcoded `localhost` references
-- [ ] Ensure SQLAlchemy models use only standard SQL types compatible with Azure SQL (no SQLite-specific features)
+- [ ] Confirm SQLAlchemy models use only standard SQL types compatible with PostgreSQL (already verified — no SQLite-specific features in `app/models.py`)
 
 ## Database Migration
 
-- [ ] Provision an **Azure SQL Database** instance
-- [ ] Install ODBC Driver 17 for SQL Server on the deployment environment
-- [ ] Update `DATABASE_URL` to the Azure SQL connection string:
+- [x] Provision an **Azure Database for PostgreSQL Flexible Server** (`biocryst-newsletter-server` — already created)
+- [ ] Add `psycopg2-binary` to `requirements.txt`
+- [ ] Update `DATABASE_URL` to the Azure PostgreSQL connection string:
   ```
-  mssql+pyodbc://user:password@server.database.windows.net:1433/database_name?driver=ODBC+Driver+17+for+SQL+Server
+  postgresql+psycopg2://user:password@biocryst-newsletter-server.postgres.database.azure.com:5432/newsletter_portal?sslmode=require
   ```
-- [ ] Add `pyodbc` to `requirements.txt` if not already present
-- [ ] Run the backend once against Azure SQL to create tables via `Base.metadata.create_all()`
+- [ ] Confirm the server's networking mode (private access via VNet, per the `privatelink.postgres.database.azure.com` DNS zone already in the resource group)
+- [ ] Run the backend once against Azure PostgreSQL to create tables via `Base.metadata.create_all()`
 - [ ] Verify seeded data (default admin user + four distribution lists) is created correctly
-- [ ] Test all CRUD operations against Azure SQL: create/read/update/delete subscriptions, imports, audit logs
+- [ ] Test all CRUD operations against Azure PostgreSQL: create/read/update/delete subscriptions, imports, audit logs
+
+See [backend/AZURE_SQL_MIGRATION.md](../backend/AZURE_SQL_MIGRATION.md) for full step-by-step PostgreSQL migration instructions.
 
 ## Authentication & Identity
 
 - [ ] Register the application in **Microsoft Entra ID** (Azure AD)
-- [ ] Configure redirect URIs for both local development and production frontend URLs
+- [ ] Configure redirect URIs for both local development and production frontend URLs (the Static Web App's `*.azurestaticapps.net` domain)
 - [ ] Implement OIDC/OAuth2 login flow in the frontend (replace mock login form)
 - [ ] Implement Entra ID token validation in the backend (replace mock JWT endpoint)
 - [ ] Remove or disable the mock login route (`POST /api/v1/auth/login`)
@@ -35,32 +44,23 @@ This checklist covers the steps required to migrate the Newsletter Subscriber Po
 
 ## Infrastructure
 
-- [ ] Provision **Azure App Service** or **Azure Container Apps** for frontend and backend
+- [x] Provision **Azure App Service** for the backend (`Biocryst-Newsletter` — already created)
+- [x] Provision **Azure Static Web App** for the frontend (`biocryst-newsletter-static` — already created)
+- [ ] Enable **outbound VNet integration** on `Biocryst-Newsletter` App Service, attached to `Biocryst-NewsletterVnet`, so it can reach the private Postgres endpoint
 - [ ] Configure **Azure Key Vault** for secrets:
   - `SECRET_KEY` (JWT signing key)
-  - `DATABASE_URL` (Azure SQL connection string)
+  - `DATABASE_URL` (Azure PostgreSQL connection string)
   - `SMTP_USER` / `SMTP_PASSWORD`
   - `GEMINI_API_KEY`
 - [ ] Enable **Application Insights** for backend monitoring, request logging, and error diagnostics
 - [ ] Set up **Azure Storage** for any file upload persistence if needed (currently CSV imports are processed in-memory)
 
-## Containerization
-
-- [ ] Create production Dockerfiles for frontend and backend (see `deployment-plan.md`)
-- [ ] Verify backend container runs correctly:
-  ```
-  python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-  ```
-- [ ] Verify frontend container builds and serves via `npm run start`
-- [ ] Push Docker images to **Azure Container Registry** (ACR)
-- [ ] Configure ACR image pull credentials in App Service / Container Apps
-
 ## Deployment
 
-- [ ] Deploy backend first and validate API health check (`GET /` returns `200`)
-- [ ] Deploy frontend and configure `NEXT_PUBLIC_API_URL` to point to the backend's production URL
-- [ ] Update backend CORS configuration: replace `allow_origins=["*"]` with the production frontend domain
-- [ ] Add health probes and readiness checks for both services
+- [ ] Deploy backend to `Biocryst-Newsletter` App Service (Python 3.11 runtime, startup command `python -m uvicorn app.main:app --host 0.0.0.0 --port 8000`) and validate API health check (`GET /` returns `200`)
+- [ ] Deploy frontend to `biocryst-newsletter-static` Static Web App (build preset: Custom, app location `frontend`, output location `out`) and configure `NEXT_PUBLIC_API_URL` as a build-time env var pointing to the backend's production URL
+- [ ] Update backend CORS configuration: replace `allow_origins=["*"]` with the Static Web App's production domain, read from an env var
+- [ ] Add health probes and readiness checks for the backend App Service
 - [ ] Verify the `seed_database()` function runs correctly on first production startup
 
 ## Post-Deployment Validation

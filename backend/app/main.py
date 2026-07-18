@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .init_db import seed_database
@@ -12,10 +14,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for Next.js dev server
+# CORS: defaults to Next.js dev server; set CORS_ORIGINS (comma-separated) in
+# production to the Static Web App's domain instead of leaving this wide open.
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

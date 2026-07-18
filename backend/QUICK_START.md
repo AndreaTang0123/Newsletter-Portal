@@ -169,7 +169,7 @@ py -m uvicorn app.main:app --reload --port 8001
 
 For detailed documentation:
 - Database architecture: `DATABASE_LAYER.md`
-- Azure SQL migration: `AZURE_SQL_MIGRATION.md`
+- Azure PostgreSQL migration: `AZURE_SQL_MIGRATION.md`
 - API reference: http://localhost:8000/docs (when running)
 
 ---
