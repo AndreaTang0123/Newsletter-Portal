@@ -20,6 +20,20 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor: an expired/invalid token means every request fails
+// with 401. Clear it and send the user back to the login screen instead of
+// leaving them stuck on a "backend not connected"-looking error state.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authApi = {
   login: (credentials: any) => apiClient.post('/auth/login', credentials),
 };
