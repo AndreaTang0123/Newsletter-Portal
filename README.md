@@ -201,7 +201,7 @@ Detailed design documentation is available in the [`docs/`](docs/) directory:
 - [Database Schema](docs/database-schema.md) — ER diagram and entity descriptions
 - [API Documentation](docs/api-documentation.md) — REST endpoint reference
 - [Deployment Plan](docs/deployment-plan.md) — Production hosting strategy
-- [Azure Migration Checklist](docs/azure-migration-checklist.md) — Steps for Azure SQL migration
+- [Azure Migration Checklist](docs/azure-migration-checklist.md) — Steps for Azure PostgreSQL migration
 - [Implementation Status](docs/current-implementation-status.md) — What's built vs. planned
 - [Test Plan](docs/test-plan.md) — Testing strategy and coverage goals
 

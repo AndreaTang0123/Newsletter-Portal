@@ -2,8 +2,8 @@ import React from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'Subscriber ',
-
+  title: 'Subscriber Management Portal',
+  description: 'Centralized subscriber & list management platform',
 };
 
 export default function RootLayout({

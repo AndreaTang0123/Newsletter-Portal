@@ -38,7 +38,6 @@ class ListBase(BaseModel):
     name: str
     description: Optional[str] = None
     owner: Optional[str] = None
-    category: Optional[str] = None  # Weekly / HAE / CMD / NS
 
 class ListCreate(ListBase):
     pass
@@ -47,7 +46,6 @@ class ListUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     owner: Optional[str] = None
-    category: Optional[str] = None
 
 class List(ListBase):
     id: int

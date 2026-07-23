@@ -40,7 +40,6 @@ def create_list(db: Session, list_in: schemas.ListCreate) -> models.List:
         name=list_in.name,
         description=list_in.description,
         owner=list_in.owner,
-        category=list_in.category
     )
     db.add(db_list)
     db.commit()
@@ -54,11 +53,13 @@ def update_list(db: Session, db_list: models.List, updates: schemas.ListUpdate) 
         db_list.description = updates.description
     if updates.owner is not None:
         db_list.owner = updates.owner
-    if updates.category is not None:
-        db_list.category = updates.category
     db.commit()
     db.refresh(db_list)
     return db_list
+
+def delete_list(db: Session, db_list: models.List) -> None:
+    db.delete(db_list)
+    db.commit()
 
 def get_list_stats(db: Session, list_id: int) -> dict:
     results = db.query(

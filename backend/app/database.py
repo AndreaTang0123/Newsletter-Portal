@@ -10,14 +10,14 @@ load_dotenv()
 # For local SQLite development:
 #   DATABASE_URL=sqlite:///./newsletter.db
 #
-# For Azure SQL production (future migration):
-#   DATABASE_URL=mssql+pyodbc://user:password@server.database.windows.net:1433/database_name?driver=ODBC+Driver+17+for+SQL+Server
+# For Azure PostgreSQL production:
+#   DATABASE_URL=postgresql+psycopg2://user:password@server.postgres.database.azure.com:5432/database_name?sslmode=require
 #
 # No code changes required for migration - just update this environment variable
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./newsletter.db")
 
 # SQLAlchemy Engine Configuration
-# Handles both SQLite and Azure SQL connection strings automatically
+# Handles both SQLite and PostgreSQL connection strings automatically
 # SQLite requires special connection settings for compatibility
 if DATABASE_URL.startswith("sqlite"):
     # SQLite-specific settings (thread safety)
@@ -26,7 +26,7 @@ if DATABASE_URL.startswith("sqlite"):
         connect_args={"check_same_thread": False}
     )
 else:
-    # SQL Server / Azure SQL uses standard pooling
+    # PostgreSQL uses standard pooling
     # Future: Add connection pooling settings if needed
     engine = create_engine(DATABASE_URL)
 

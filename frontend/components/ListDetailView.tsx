@@ -24,7 +24,6 @@ interface ListDetails {
   name: string;
   description: string;
   owner: string;
-  category: string;
   subscriber_count: number;
 }
 

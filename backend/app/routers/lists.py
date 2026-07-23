@@ -28,7 +28,6 @@ def read_list(list_id: int, db: Session = Depends(get_db), current_user: models.
         "name": lst.name,
         "description": lst.description,
         "owner": lst.owner,
-        "category": lst.category,
         "created_at": lst.created_at,
         "updated_at": lst.updated_at,
         "subscriber_count": stats["Total"],
@@ -82,7 +81,6 @@ def update_list(
         "name": lst.name,
         "description": lst.description,
         "owner": lst.owner,
-        "category": lst.category,
         "created_at": lst.created_at,
         "updated_at": lst.updated_at,
         "subscriber_count": stats["Total"],
@@ -90,3 +88,14 @@ def update_list(
         "unsubscribed_count": stats["Unsubscribed"],
         "bounced_count": stats["Bounced"]
     }
+
+@router.delete("/{list_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_list(
+    list_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_admin)
+):
+    lst = crud.get_list_by_id(db, list_id)
+    if not lst:
+        raise HTTPException(status_code=404, detail="List not found")
+    crud.delete_list(db, lst)
