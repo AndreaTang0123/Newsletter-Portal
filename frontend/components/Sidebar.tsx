@@ -1,12 +1,22 @@
 import React from 'react';
 import { LayoutDashboard, Users, Settings, FileText, Upload, History, List } from 'lucide-react';
 
+interface CurrentUser {
+  email: string;
+  full_name: string | null;
+  role: string;
+}
+
 interface SidebarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
+  currentUser?: CurrentUser | null;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab, currentUser }) => {
+  const displayName = currentUser?.full_name || currentUser?.email || 'Signed in';
+  const displayRole = currentUser?.role === 'admin' ? 'Administrator' : currentUser ? 'Curator' : '';
+  const avatarInitial = displayName.charAt(0).toUpperCase();
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'lists', label: 'Distribution Lists', icon: List },
@@ -64,11 +74,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setCurrentTab }) =
       <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-glass)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-            A
+            {avatarInitial}
           </div>
           <div>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Maxwell Mitchell</p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Administrator</p>
+            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>{displayName}</p>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{displayRole}</p>
           </div>
         </div>
       </div>

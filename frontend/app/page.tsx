@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
 import { ListsView } from '../components/ListsView';
@@ -9,7 +10,14 @@ import { ImportView } from '../components/ImportView';
 import { MasterSubscribersView } from '../components/MasterSubscribersView';
 import { AuditLogsView } from '../components/AuditLogsView';
 import { authApi, dashboardApi } from '../lib/api';
+import { apiScopeRequest } from '../lib/msalConfig';
 import { Mail, ShieldCheck, Cpu, CheckCircle, List, Users, ShieldAlert, History, RefreshCw, Calendar, FileText } from 'lucide-react';
+
+interface CurrentUser {
+  email: string;
+  full_name: string | null;
+  role: string;
+}
 
 interface RecentChange {
   id: number;
@@ -32,13 +40,12 @@ interface DashboardStats {
 }
 
 export default function DashboardHome() {
+  const { instance } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
+
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const [statistics, setStatistics] = useState<DashboardStats>({
     total_lists: 0,
@@ -54,19 +61,20 @@ export default function DashboardHome() {
   const [statsError, setStatsError] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        setLoggedIn(true);
-      }
+    if (isAuthenticated) {
+      authApi.me()
+        .then((response) => setCurrentUser(response.data))
+        .catch(() => setCurrentUser(null));
+    } else {
+      setCurrentUser(null);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (loggedIn && currentTab === 'dashboard') {
+    if (isAuthenticated && currentTab === 'dashboard') {
       fetchStatistics();
     }
-  }, [loggedIn, currentTab]);
+  }, [isAuthenticated, currentTab]);
 
   const fetchStatistics = async () => {
     setLoadingStats(true);
@@ -82,30 +90,12 @@ export default function DashboardHome() {
     }
   };
 
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoginError('');
-    setLoadingLogin(true);
-
-    try {
-      const response = await authApi.login({ email, password });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.data.access_token);
-      }
-      setLoggedIn(true);
-    } catch (error) {
-      setLoginError('Login failed. Please check your email and password.');
-    } finally {
-      setLoadingLogin(false);
-    }
-  };
-
   const navigateToListDetail = (listId: number) => {
     setSelectedListId(listId);
     setCurrentTab(`list-detail-${listId}`);
   };
 
-  if (!loggedIn) {
+  if (!isAuthenticated) {
     return (
       <main style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '36px', padding: '48px' }}>
         <section style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '24px', maxWidth: '560px' }}>
@@ -123,49 +113,20 @@ export default function DashboardHome() {
           <div className="glass-panel" style={{ padding: '32px', maxWidth: '420px', width: '100%' }}>
             <div style={{ marginBottom: '24px' }}>
               <h2 style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Sign in to your account</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Use mock backend credentials to validate Subscriber Portal features.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Sign in with your BioCryst Microsoft account to access the Subscriber Portal.</p>
             </div>
 
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Email
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="curator@company.com"
-                  required
-                  style={{ padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                />
-              </label>
+            <button
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => instance.loginRedirect(apiScopeRequest)}
+            >
+              Sign in with Microsoft
+            </button>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Password
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="securepassword123"
-                  required
-                  style={{ padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                />
-              </label>
-
-              {loginError && <p style={{ color: 'var(--color-error)', fontSize: '0.9rem' }}>{loginError}</p>}
-
-              <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loadingLogin}>
-                {loadingLogin ? 'Signing in...' : 'Sign In'}
-              </button>
-            </form>
-
-            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }} disabled>
-                Sign in with Microsoft Entra ID (coming soon)
-              </button>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6 }}>
-                Default local credentials: <strong>curator@company.com</strong> / <strong>securepassword123</strong>
-              </p>
-            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6, marginTop: '16px' }}>
+              Access is restricted to <strong>@biocryst.com</strong> accounts.
+            </p>
           </div>
         </section>
       </main>
@@ -175,7 +136,7 @@ export default function DashboardHome() {
   return (
     <div className="app-container">
       {/* Navigation Sidebar */}
-      <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <Sidebar currentTab={currentTab} setCurrentTab={setCurrentTab} currentUser={currentUser} />
 
       {/* Main Admin View Workspace */}
       <main className="content-area">
@@ -393,12 +354,7 @@ export default function DashboardHome() {
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 className="btn-secondary"
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('token');
-                  }
-                  setLoggedIn(false);
-                }}
+                onClick={() => instance.logoutRedirect()}
                 style={{ padding: '8px 14px' }}
               >
                 Sign out

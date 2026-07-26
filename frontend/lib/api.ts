@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { InteractionRequiredAuthError } from '@azure/msal-browser';
+import { msalInstance } from './msalInstance';
+import { apiScopeRequest } from './msalConfig';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -9,33 +12,38 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor to attach JWT token if present
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Request interceptor: attach a fresh Entra access token to every call.
+apiClient.interceptors.request.use(async (config) => {
+  const account = msalInstance.getActiveAccount();
+  if (account) {
+    try {
+      const result = await msalInstance.acquireTokenSilent({ ...apiScopeRequest, account });
+      config.headers.Authorization = `Bearer ${result.accessToken}`;
+    } catch (error) {
+      if (error instanceof InteractionRequiredAuthError) {
+        await msalInstance.acquireTokenRedirect(apiScopeRequest);
+      }
+      throw error;
     }
   }
   return config;
 });
 
-// Response interceptor: an expired/invalid token means every request fails
-// with 401. Clear it and send the user back to the login screen instead of
-// leaving them stuck on a "backend not connected"-looking error state.
+// Response interceptor: a 401 means the token was rejected (expired,
+// revoked, wrong tenant/domain) — send the user through sign-in again
+// instead of leaving them stuck on a "backend not connected"-looking error.
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      window.location.href = '/';
+    if (error.response?.status === 401) {
+      msalInstance.logoutRedirect();
     }
     return Promise.reject(error);
   }
 );
 
 export const authApi = {
-  login: (credentials: any) => apiClient.post('/auth/login', credentials),
+  me: () => apiClient.get('/auth/me'),
 };
 
 export const listsApi = {

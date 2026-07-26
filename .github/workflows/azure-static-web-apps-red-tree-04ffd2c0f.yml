@@ -23,6 +23,9 @@ jobs:
         id: builddeploy
         env:
           NEXT_PUBLIC_API_URL: "https://biocryst-newsletter-aadserh2c0dqbhen.eastus2-01.azurewebsites.net/api/v1"
+          NEXT_PUBLIC_MSAL_CLIENT_ID: "e3063381-c4be-496e-8776-889b922b2092"
+          NEXT_PUBLIC_MSAL_TENANT_ID: "c7fe4dda-d720-498c-8d8d-e8fe0ef3f333"
+          NEXT_PUBLIC_API_SCOPE: "api://e3063381-c4be-496e-8776-889b922b2092/user_impersonation"
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_RED_TREE_04FFD2C0F }}

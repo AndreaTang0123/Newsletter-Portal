@@ -2,14 +2,6 @@ from pydantic import BaseModel, EmailStr
 from typing import List as TypingList, Optional, Any
 from datetime import datetime
 
-# Token Schemas
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
-
 # User Schemas
 class UserBase(BaseModel):
     email: EmailStr
@@ -17,10 +9,6 @@ class UserBase(BaseModel):
     role: Optional[str] = "curator"
 
 class UserCreate(UserBase):
-    password: str
-
-class UserLogin(BaseModel):
-    email: EmailStr
     password: str
 
 class User(UserBase):

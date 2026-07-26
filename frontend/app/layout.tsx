@@ -1,5 +1,6 @@
 import React from 'react';
 import './globals.css';
+import { MsalProviderWrapper } from '../components/MsalProviderWrapper';
 
 export const metadata = {
   title: 'Subscriber Management Portal',
@@ -18,7 +19,7 @@ export default function RootLayout({
         <meta name="description" content={metadata.description} />
       </head>
       <body>
-        {children}
+        <MsalProviderWrapper>{children}</MsalProviderWrapper>
       </body>
     </html>
   );
