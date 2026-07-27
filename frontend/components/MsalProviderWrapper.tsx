@@ -6,6 +6,7 @@ import { msalInstance } from '../lib/msalInstance';
 
 export function MsalProviderWrapper({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     msalInstance
@@ -21,11 +22,25 @@ export function MsalProviderWrapper({ children }: { children: React.ReactNode })
           }
         }
         setInitialized(true);
+      })
+      .catch((error) => {
+        console.error('MSAL initialization failed:', error);
+        setInitError(error?.message || 'Failed to initialize sign-in.');
+        setInitialized(true);
       });
   }, []);
 
   if (!initialized) {
     return null;
+  }
+
+  if (initError) {
+    return (
+      <div style={{ padding: '48px', fontFamily: 'sans-serif', color: '#ef4444' }}>
+        <h2>Sign-in failed to initialize</h2>
+        <p>{initError}</p>
+      </div>
+    );
   }
 
   return <MsalProvider instance={msalInstance}>{children}</MsalProvider>;
