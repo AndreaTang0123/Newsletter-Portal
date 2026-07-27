@@ -1,175 +1,90 @@
-# Database Schema Documentation
+# Database Schema
 
-The system uses a relational database managed through SQLAlchemy ORM. SQLite is used for local development; the schema is designed for compatibility with Azure SQL Database for production deployment.
+**Engine:** Azure Database for PostgreSQL Flexible Server in production (private network only); SQLite for local development. **ORM:** SQLAlchemy 2.x, models defined in `backend/app/models.py`. Tables are created automatically on backend startup via `Base.metadata.create_all()` — there is no separate migration tool (Alembic etc.) in use, so schema changes today mean editing `models.py` and letting the next deploy create any new tables/columns.
 
-## Entity Relationship Diagram
+## Entity relationships
 
-```mermaid
-erDiagram
-    USER {
-        int id PK
-        string email UK
-        string hashed_password
-        string full_name
-        string role "admin | curator"
-        boolean is_active
-        datetime created_at
-        datetime updated_at
-    }
+```
+User (standalone — not FK-linked to List/Subscriber/Subscription;
+      AuditLog.actor references a user by plain email string, not a FK)
 
-    LIST {
-        int id PK
-        string name UK
-        text description
-        string owner
-        string category "Weekly | HAE | CMD | NS"
-        datetime created_at
-        datetime updated_at
-    }
+List ──1───────*── Subscription ──*───────1── Subscriber
+ (ON DELETE CASCADE)              (ON DELETE CASCADE)
 
-    SUBSCRIBER {
-        int id PK
-        string email UK
-        string name
-        string department
-        string role_title
-        datetime created_at
-        datetime updated_at
-    }
-
-    SUBSCRIPTION {
-        int id PK
-        int list_id FK
-        int subscriber_id FK
-        string status "Active | Paused | Unsubscribed | Bounced"
-        string source "Bulk Import | Curator Added | Self-Service"
-        datetime opt_in_date
-        datetime unsubscribed_at
-        text notes
-        datetime created_at
-        datetime updated_at
-    }
-
-    AUDIT_LOG {
-        int id PK
-        string actor
-        string action
-        int list_id FK
-        int subscriber_id FK
-        datetime timestamp
-        text details
-    }
-
-    LIST ||--o{ SUBSCRIPTION : "has"
-    SUBSCRIBER ||--o{ SUBSCRIPTION : "has"
-    LIST ||--o{ AUDIT_LOG : "referenced by"
-    SUBSCRIBER ||--o{ AUDIT_LOG : "referenced by"
+List ──0..1─────*── AuditLog ──*─────0..1── Subscriber
+ (ON DELETE SET NULL)          (ON DELETE SET NULL)
 ```
 
-## Schema Entities
+## Tables
 
-### 1. User (`users`)
+### `users`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | Integer, PK | |
+| `email` | String(255), unique, indexed, not null | |
+| `hashed_password` | String, not null | Legacy — since the move to Entra ID SSO, this holds an unusable random placeholder for every user; it is never checked to authenticate anyone anymore. |
+| `full_name` | String(255), nullable | Populated from the Entra ID `name` claim on first sign-in. |
+| `role` | String(50), default `curator` | `curator` or `admin`. |
+| `is_active` | Boolean, default `true` | |
+| `created_at` / `updated_at` | timestamptz | Server-defaulted. |
 
-Represents curators and administrators who manage the system.
+Rows are created automatically the first time someone signs in with a valid `@biocryst.com` Entra ID account (`entra_auth.get_or_create_sso_user`) — there is no signup form and no seeded default user.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | Integer | PK, auto-increment | Primary key |
-| `email` | String(255) | Unique, indexed, not null | Login identifier |
-| `hashed_password` | String | Not null | bcrypt hash |
-| `full_name` | String(255) | Nullable | Display name |
-| `role` | String(50) | Default `"curator"` | `admin` or `curator` |
-| `is_active` | Boolean | Default `true` | Account status |
-| `created_at` | DateTime(tz) | Server default `now()` | Creation timestamp |
-| `updated_at` | DateTime(tz) | Server default `now()`, auto-update | Last modification |
+### `lists`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | Integer, PK | |
+| `name` | String(255), unique, indexed, not null | |
+| `description` | Text, nullable | |
+| `owner` | String(255), nullable | Free-text display name, not a foreign key to `users`. |
+| `category` | String(50), nullable | e.g. `Weekly`, `HAE`, `CMD`, `NS`. |
+| `created_at` / `updated_at` | timestamptz | |
 
-### 2. List (`lists`)
+Seeded on first backend startup with four lists: Weekly Newsletter, HAE, CMD, NS.
 
-Represents a distribution channel (e.g., Weekly Newsletter, HAE, CMD, NS).
+### `subscribers`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | Integer, PK | |
+| `name` | String(255), nullable | |
+| `email` | String(255), unique, indexed, not null | One row per unique email, shared across all list memberships. |
+| `department` | String(255), nullable | |
+| `role_title` | String(255), nullable | |
+| `subscription_token` | String(36), unique, indexed, nullable | UUID, auto-generated. Powers the public self-service pages — this is the `?token=` value in personal footer links. |
+| `created_at` / `updated_at` | timestamptz | |
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | Integer | PK, auto-increment | Primary key |
-| `name` | String(255) | Unique, indexed, not null | List display name |
-| `description` | Text | Nullable | List description |
-| `owner` | String(255) | Nullable | Responsible person |
-| `category` | String(50) | Nullable | Channel type (Weekly/HAE/CMD/NS) |
-| `created_at` | DateTime(tz) | Server default `now()` | Creation timestamp |
-| `updated_at` | DateTime(tz) | Server default `now()`, auto-update | Last modification |
+### `subscriptions`
+The join table between `subscribers` and `lists` — this is what actually gets added/edited/removed when you manage a subscriber's membership in a list.
 
-**Relationships:** One-to-many with `Subscription` (cascade delete).
+| Column | Type | Notes |
+|---|---|---|
+| `id` | Integer, PK | |
+| `list_id` | FK → `lists.id`, `ON DELETE CASCADE`, not null | |
+| `subscriber_id` | FK → `subscribers.id`, `ON DELETE CASCADE`, not null | |
+| `status` | String(50), default `Active`, not null | `Active` / `Paused` / `Unsubscribed` / `Bounced`. |
+| `source` | String(50), default `Bulk Import`, not null | `Bulk Import` / `Curator Added` / `Self-Service`. |
+| `opt_in_date` | timestamptz, server-defaulted | |
+| `unsubscribed_at` | timestamptz, nullable | |
+| `notes` | Text, nullable | |
+| `created_at` / `updated_at` | timestamptz | |
 
-### 3. Subscriber (`subscribers`)
+**Constraint:** `UNIQUE (list_id, subscriber_id)` — a subscriber can only have one subscription row per list.
 
-Unique email contacts who can be subscribed to one or more distribution lists.
+### `audit_logs`
+Append-only; nothing in the application updates or deletes these rows.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | Integer | PK, auto-increment | Primary key |
-| `name` | String(255) | Nullable | Display name |
-| `email` | String(255) | Unique, indexed, not null | Email address |
-| `department` | String(255) | Nullable | Organizational department |
-| `role_title` | String(255) | Nullable | Job title |
-| `created_at` | DateTime(tz) | Server default `now()` | Creation timestamp |
-| `updated_at` | DateTime(tz) | Server default `now()`, auto-update | Last modification |
+| Column | Type | Notes |
+|---|---|---|
+| `id` | Integer, PK | |
+| `actor` | String(255), nullable | The acting user's email, or `NULL` for system-generated entries (rendered as "System" in the UI). |
+| `action` | String(255), not null | Free text, e.g. `"Subscriber added"`, `"Subscriber removed"`, `"List imported"`. |
+| `list_id` | FK → `lists.id`, nullable, `ON DELETE SET NULL` | |
+| `subscriber_id` | FK → `subscribers.id`, nullable, `ON DELETE SET NULL` | |
+| `timestamp` | timestamptz, server-defaulted, not null | |
+| `details` | Text, nullable | |
 
-**Relationships:** One-to-many with `Subscription` (cascade delete).
+## Notes for Postgres specifically
 
-### 4. Subscription (`subscriptions`)
-
-Join entity linking a `Subscriber` to a `List`. Carries per-list subscription metadata.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | Integer | PK, auto-increment | Primary key |
-| `list_id` | Integer | FK → `lists.id` (CASCADE), not null | Target distribution list |
-| `subscriber_id` | Integer | FK → `subscribers.id` (CASCADE), not null | Subscriber record |
-| `status` | String(50) | Default `"Active"`, not null | `Active` / `Paused` / `Unsubscribed` / `Bounced` |
-| `source` | String(50) | Default `"Bulk Import"`, not null | `Bulk Import` / `Curator Added` / `Self-Service` |
-| `opt_in_date` | DateTime(tz) | Server default `now()` | When the subscriber was added |
-| `unsubscribed_at` | DateTime(tz) | Nullable | When the subscriber unsubscribed |
-| `notes` | Text | Nullable | Internal curator notes |
-| `created_at` | DateTime(tz) | Server default `now()` | Record creation |
-| `updated_at` | DateTime(tz) | Server default `now()`, auto-update | Last modification |
-
-**Constraints:** Unique constraint on `(list_id, subscriber_id)` — a subscriber can only appear once per list.
-
-**Relationships:** Many-to-one with both `List` and `Subscriber`.
-
-### 5. AuditLog (`audit_logs`)
-
-Immutable log of every subscriber-related modification made in the system.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | Integer | PK, auto-increment | Primary key |
-| `actor` | String(255) | Nullable | Email of the user who made the change |
-| `action` | String(255) | Not null | Action description (e.g., "Subscriber added", "Subscriber removed", "List imported") |
-| `list_id` | Integer | FK → `lists.id` (SET NULL), nullable | Associated list |
-| `subscriber_id` | Integer | FK → `subscribers.id` (SET NULL), nullable | Associated subscriber |
-| `timestamp` | DateTime(tz) | Server default `now()`, not null | When the action occurred |
-| `details` | Text | Nullable | Additional context (e.g., "Bulk imported 15 subscribers from CSV.") |
-
-**Relationships:** Many-to-one with `List` and `Subscriber` (SET NULL on delete to preserve audit history).
-
-## Seeded Data
-
-On first startup (`init_db.py`), the system seeds:
-
-**Distribution Lists:**
-
-| Name | Category | Owner |
-|------|----------|-------|
-| Weekly Newsletter | Weekly | Alex Sherman |
-| HAE | HAE | Alex Sherman |
-| CMD | CMD | Warren |
-| NS | NS | Warren |
-
-**Admin User:**
-
-| Field | Value |
-|-------|-------|
-| Email | `curator@company.com` |
-| Password | `securepassword123` |
-| Full Name | Andrea Tang |
-| Role | `admin` |
+- All types used (`Integer`, `String`, `Boolean`, `DateTime(timezone=True)`, `Text`) are portable — nothing SQLite-specific leaked into `models.py`, so the same model file works unmodified against both engines.
+- Connections use `sslmode=require`; the server has no public network access, only reachable from inside its VNet (see [Deployment Guide](deployment-guide.md#networking)).
+- Automated backups are enabled at the Azure level by default (point-in-time restore).
