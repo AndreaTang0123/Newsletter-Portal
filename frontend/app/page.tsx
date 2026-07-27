@@ -105,7 +105,7 @@ export default function DashboardHome() {
           </div>
 
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '520px', lineHeight: 1.8 }}>
-            Centralized registry for Weekly CI Newsletters, HAE, CMD, and NS alerts. Add, edit, bulk import, and audit audience distribution lists securely in one unified administrative environment.
+            Centralized registry for newsletter subscriber management. Add, edit, bulk import, and audit audience distribution lists securely in one unified administrative environment.
           </p>
         </section>
 
