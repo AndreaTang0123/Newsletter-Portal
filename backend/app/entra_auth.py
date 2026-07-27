@@ -63,10 +63,17 @@ def validate_entra_token(token: str) -> dict:
             token,
             key,
             algorithms=["RS256"],
-            audience=[CLIENT_ID, f"api://{CLIENT_ID}"],
             issuer=ISSUER,
+            options={"verify_aud": False},
         )
     except JWTError:
+        raise credentials_exception
+
+    # python-jose's built-in `audience` check only accepts a single expected
+    # value, but Entra tokens for this scope may use either the bare client
+    # ID or the api:// App ID URI as `aud` — validate against both manually.
+    acceptable_audiences = {CLIENT_ID, f"api://{CLIENT_ID}"}
+    if claims.get("aud") not in acceptable_audiences:
         raise credentials_exception
 
     email = (claims.get("preferred_username") or claims.get("email") or "").lower()
